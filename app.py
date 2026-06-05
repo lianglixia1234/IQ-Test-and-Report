@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 
-st.title("🏆瑞文智力测验（60题），标准渐进矩阵（SPM）🏆")
+st.title("🏆瑞文标准智力测验🏆")
 
 name = st.text_input(
     "姓名"
