@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 st.title("🏆瑞文标准智力测验🏆")
-st.subtitle("适用于5.5岁及以上")
+st.subheader("适用于5.5岁及以上")
 
 name = st.text_input(
     "姓名"
