@@ -42,7 +42,7 @@ if st.button("开始测试"):
         }])
 
         new_record.to_csv(
-            "child_answer_record.xlsx",
+            "record.csv",
             mode="a",
             header=False,   # 文件已有标题列
             index=False,
