@@ -3,6 +3,7 @@ import pandas as pd
 
 
 st.title("🏆瑞文标准智力测验🏆")
+st.subtitle("适用于5.5岁及以上”）
 
 name = st.text_input(
     "姓名"
@@ -14,7 +15,7 @@ gender = st.radio(
     horizontal=True
 )
 
-ages = [x / 2 for x in range(8, 41)]
+ages = [x / 2 for x in range(5.5, 70)]
 # 4.0 ~ 20.0
 
 age = st.selectbox(
