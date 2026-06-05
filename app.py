@@ -23,6 +23,13 @@ age = st.selectbox(
     ages
 )
 
+
+test_date = st.date_input(
+    "测试日期",
+    value=date.today()
+)
+
+
 if st.button("进入测试"):
 
     if not name:
@@ -33,12 +40,14 @@ if st.button("进入测试"):
         st.session_state["name"] = name
         st.session_state["gender"] = gender
         st.session_state["age"] = age
+        st.session_state["test_date"] = test_date
 
         # 追加到 CSV
         new_record = pd.DataFrame([{
             "Name": name,
             "Sex": gender,
-            "Age": age
+            "Age": age,
+            "Date": test_date.strftime("%Y-%m-%d")
         }])
 
         new_record.to_csv(
