@@ -23,7 +23,7 @@ age = st.selectbox(
     ages
 )
 
-if st.button("开始测试"):
+if st.button("进入测试"):
 
     if not name:
         st.error("请输入姓名")
