@@ -14,8 +14,9 @@ gender = st.radio(
     horizontal=True
 )
 
-ages = [x / 2 for x in range(5.5, 70)]
-# 4.0 ~ 20.0
+ages = [x / 2 for x in range(11, 141)]
+# 年龄从 5.5岁开始，每0.5岁递增
+# 5.5~70
 
 age = st.selectbox(
     "年龄",
