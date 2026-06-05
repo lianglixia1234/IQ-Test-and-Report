@@ -9,7 +9,7 @@ name = st.text_input(
 )
 
 gender = st.radio(
-    "性别",
+    "性别 （下拉选择：整岁或半岁）",
     ["男", "女"],
     horizontal=True
 )
