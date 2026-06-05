@@ -9,7 +9,7 @@ name = st.text_input(
 )
 
 gender = st.radio(
-    "性别 （下拉选择：整岁或半岁）",
+    "性别 ",
     ["男", "女"],
     horizontal=True
 )
@@ -19,7 +19,7 @@ ages = [x / 2 for x in range(11, 141)]
 # 5.5~70
 
 age = st.selectbox(
-    "年龄",
+    "年龄（下拉选择：整岁或半岁）",
     ages
 )
 
