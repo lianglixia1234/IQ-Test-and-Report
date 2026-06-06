@@ -277,8 +277,8 @@ elif st.session_state.page == "intro":
 elif st.session_state.page == "test":
    
     st_autorefresh(
-        interval=1000,
-        key="timer"
+        interval=1000,  # 1秒
+        key="countdown"
     )
     TOTAL_TIME = 40 * 60
 
