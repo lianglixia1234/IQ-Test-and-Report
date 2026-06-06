@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import time
 from pathlib import Path
-from streamlit_autorefresh import st_autorefresh
+
 
 
 
@@ -276,10 +276,7 @@ elif st.session_state.page == "intro":
 
 elif st.session_state.page == "test":
    
-    st_autorefresh(
-        interval=1000,  # 1秒
-        key="countdown"
-    )
+    
     TOTAL_TIME = 40 * 60
 
     elapsed = int(
@@ -306,9 +303,20 @@ elif st.session_state.page == "test":
     minutes = remaining // 60
     seconds = remaining % 60
 
-    st.markdown(
-        f"## ⏳ 剩余时间：{minutes:02d}:{seconds:02d}"
-    )
+    @st.fragment(run_every="1s")
+    def timer():
+    
+        remaining = 2400 - (
+            time.time()
+            - st.session_state.start_time
+        )
+    
+        st.metric(
+            "剩余时间",
+            f"{int(remaining//60):02d}:{int(remaining%60):02d}"
+        )
+    
+    timer()
 
     idx = st.session_state.current_question
 
