@@ -2,19 +2,35 @@ import streamlit as st
 import pandas as pd
 import time
 from pathlib import Path
+！pip install streamlit-autorefresh
+from streamlit_autorefresh import st_autorefresh
 
-# ==========================
-# 页面配置
-# ==========================
 
-st.set_page_config(
-    page_title="瑞文标准智力测验",
-    page_icon="📝",
-    layout="wide"
-)
 
-st.title("📝 瑞文标准智力测验")
-st.subheader("💡 适用于5.5岁及以上")
+
+st.markdown("""
+<style>
+
+div[role="radiogroup"] > label {
+    background-color:#f5f5f5;
+    border:2px solid #cccccc;
+    border-radius:8px;
+    padding:10px 20px;
+    margin-right:10px;
+    font-size:24px !important;
+    font-weight:bold;
+}
+
+div[role="radiogroup"] {
+    flex-direction:row;
+}
+
+</style>
+""",
+unsafe_allow_html=True)
+
+
+
 
 # ==========================
 # 读取题库
@@ -187,6 +203,10 @@ def submit_test():
 
 if st.session_state.page == "info":
 
+    st.title("📝 瑞文标准智力测验")
+    st.subheader("💡 适用于5.5岁及以上")
+
+    
     st.header("测试登记")
 
     name = st.text_input("姓名")
@@ -256,7 +276,11 @@ elif st.session_state.page == "intro":
 # ==========================
 
 elif st.session_state.page == "test":
-
+   
+    st_autorefresh(
+        interval=1000,
+        key="timer"
+    )
     TOTAL_TIME = 40 * 60
 
     elapsed = int(
@@ -329,7 +353,6 @@ elif st.session_state.page == "test":
     st.radio(
         "请选择答案",
         choices,
-        index=radio_index,
         horizontal=True,
         key=f"question_{idx}"
     )
