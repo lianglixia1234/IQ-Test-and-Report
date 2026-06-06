@@ -1,4 +1,4 @@
 streamlit
 pandas
 time
-install streamlit-autorefresh
+streamlit-autorefresh
