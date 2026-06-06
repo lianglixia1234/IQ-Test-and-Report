@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import time
 from pathlib import Path
-pip install streamlit-autorefresh
 from streamlit_autorefresh import st_autorefresh
 
 
