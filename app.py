@@ -20,7 +20,10 @@ st.subheader("💡 适用于5.5岁及以上")
 # 读取题库
 # ==========================
 
-questions = pd.read_csv("questions.csv")
+questions = pd.read_csv(
+    "questions.csv",
+    encoding="gb18030"
+)
 
 # 按题号排序
 questions = questions.sort_values(
