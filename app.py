@@ -199,7 +199,7 @@ if st.session_state.page == "info":
     ages = [x / 2 for x in range(11, 141)]
 
     age = st.selectbox(
-        "年龄（5.5~70岁）",
+        "年龄（下拉选择整岁或者半岁）",
         ages
     )
 
