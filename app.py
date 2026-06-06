@@ -303,28 +303,39 @@ elif st.session_state.page == "test":
     minutes = remaining // 60
     seconds = remaining % 60
 
-    @st.fragment(run_every="1s")
-    def timer():
-    
-        remaining = 2400 - (
-            time.time()
-            - st.session_state.start_time
-        )
-    
-        st.metric(
-            "剩余时间",
-            f"{int(remaining//60):02d}:{int(remaining%60):02d}"
-        )
-    
-    timer()
-
     idx = st.session_state.current_question
 
-    q = questions.iloc[idx]
-
-    st.subheader(
-        f"第 {idx + 1} 题 / {len(questions)} 题"
-    )
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+    
+        st.markdown(
+            f"### 第 {idx+1} 题 / {len(questions)} 题"
+        )
+    
+    with col2:
+    
+        @st.fragment(run_every="1s")
+        def timer():
+    
+            remaining = 2400 - (
+                time.time()
+                - st.session_state.start_time
+            )
+    
+            st.markdown(
+                f"""
+                <div style='text-align:right;
+                            font-size:28px;
+                            font-weight:bold;
+                            color:red;'>
+                ⏳ {int(remaining//60):02d}:{int(remaining%60):02d}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+    
+        timer()
 
     # 图片
     image_path = (
@@ -447,4 +458,3 @@ elif st.session_state.page == "finish":
         f"完成时间：{duration // 60}分{duration % 60}秒"
     )
 
-    st.write("结果已保存到 record.csv")
