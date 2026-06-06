@@ -236,7 +236,7 @@ elif st.session_state.page == "intro":
 
     st.image(
         "IQ_Test_Picture/introduction.png",
-        width=500
+        width=800
     )
 
     st.info(
@@ -303,7 +303,7 @@ elif st.session_state.page == "test":
 
     st.image(
         str(image_path),
-        width=500
+        width=800
     )
 
     # 选项
