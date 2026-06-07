@@ -2,6 +2,13 @@ import streamlit as st
 import pandas as pd
 import time
 from pathlib import Path
+from PIL import Image
+
+
+# 预加载图片
+@st.cache_data
+def load_image(path):
+    return Image.open(path)
 
 
 
@@ -319,17 +326,29 @@ elif st.session_state.page == "test":
     
         @st.fragment(run_every="1s")
         def timer():
-    
-            remaining = 2400 - (
-                time.time()
-                - st.session_state.start_time
+        
+            remaining = (
+                TOTAL_TIME
+                - (
+                    time.time()
+                    - st.session_state.start_time
+                )
             )
-    
+        
+            if remaining <= 0:
+        
+                save_current_answer()
+        
+                submit_test()
+        
+                st.session_state.page = "finish"
+        
+                st.rerun()
+        
             st.markdown(
                 f"""
                 <div style='text-align:right;
                             font-size:28px;
-                            font-weight:bold;
                             color:red;'>
                 ⏳ {int(remaining//60):02d}:{int(remaining%60):02d}
                 </div>
@@ -353,7 +372,7 @@ elif st.session_state.page == "test":
     # 选项
     option_num = int(q["Options"])
 
-    choices = list(
+    choices = ["未作答"] + list(
         range(1, option_num + 1)
     )
 
@@ -376,7 +395,38 @@ elif st.session_state.page == "test":
         horizontal=True,
         key=f"question_{idx}"
     )
+    
+    # 自动切换下一题
+    answer = st.radio(
+        "请选择答案",
+        choices,
+        horizontal=True,
+        key=f"question_{idx}"
+    )
 
+    if answer != "未作答":
+
+        st.session_state.answers[item] = answer
+    
+        if idx < len(questions) - 1:
+    
+            st.session_state.current_question += 1
+    
+            st.rerun()
+    
+        else:
+    
+            submit_test()
+    
+            st.session_state.page = "finish"
+    
+            st.rerun()
+
+
+
+
+
+    
     # ------------------
     # 导航按钮
     # ------------------
