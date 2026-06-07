@@ -7,6 +7,7 @@ from datetime import datetime
 from github import Github
 from io import StringIO
 from streamlit_autorefresh import st_autorefresh
+from report import upload_report_to_github
 
 # 🌟 从你自己写的 report.py 文件中，导入这两个核心函数
 from report import calculate_report_data, generate_report_html
@@ -316,48 +317,68 @@ elif st.session_state.page == "finish":
 
     total_score = sum(factor_scores.values())
 
-    # 2. 核心调用：清洗数据（彻底移除了旧的 norm_df 和 text_df 传参）
+    # 🌟 局部导入，确保组件干净
+    from report import calculate_report_data, generate_report_html, upload_report_to_github
+
+    # 2. 核心调用：清洗数据（彻底移除所有 datetime 获取，完全复用 test_date）
     user_name = st.session_state.get("name", "测试者")
+    test_date_str = st.session_state.get("test_date", "未知日期")
+    
     report_data = calculate_report_data(
         name=user_name,
         gender=st.session_state.get("gender", "男"),
         age=st.session_state.get("age", 10.0),
-        test_date=st.session_state.get("test_date", datetime.now().strftime("%Y-%m-%d")),
+        test_date=test_date_str,
         total_score=total_score,
         factor_scores=factor_scores
     )
 
-    # 3. 核心调用：使用跨文件导入的 HTML 函数生成漂亮的前端排版
-    report_html = generate_report_html(report_data)
+    # 3. 核心调用：生成 HTML 并在顶部注入“一键打印 PDF”的前端交互按钮
+    raw_html = generate_report_html(report_data)
     
-    # 渲染到主界面供用户查看
+    # 💡 巧妙嵌入前端打印控制，点击即可完美调用系统底层转换为 PDF
+    pdf_button_html = f"""
+    <div style="max-width: 850px; margin: 10px auto; text-align: right; font-family: 'Microsoft YaHei', sans-serif;">
+        <button onclick="window.print()" style="padding: 10px 20px; background-color: #67c23a; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            🖨️ 一键打印或另存为 PDF 报告
+        </button>
+    </div>
+    """
+    report_html = pdf_button_html + raw_html
+    
+    # 渲染到主界面供用户查看和交互
     st.markdown(report_html, unsafe_allow_html=True)
 
     # --------------------------------------------------------------------------
-    # 🌟 自动将报告上传到 GitHub 的 report/ 文件夹下
+    # 🌟 自动将 HTML 报告上传到 GitHub 的 report/ 文件夹下
     # --------------------------------------------------------------------------
-    # 避免页面因 st_autorefresh 刷新导致重复提交，用 session_state 加锁锁住
-    github_lock_key = f"uploaded_{st.session_state.start_time}"
+    # 使用 test_date 结合用户名生成唯一且不依赖当前时间戳的锁，防止重复上传
+    github_lock_key = f"uploaded_{user_name}_{test_date_str}"
+    
     if github_lock_key not in st.session_state:
-        # 为当前用户生成一个规范的文件名
-        custom_file_name = f"{user_name}_瑞文测验报告_{datetime.now():%Y%m%d_%H%M%S}.html"
+        # 挂上占位锁
+        st.session_state[github_lock_key] = "pending" 
+        
+        # 文件名直接复用已有的日期数据
+        custom_file_name = f"report/{user_name}_瑞文测验报告_{test_date_str}.html"
         
         # 唤醒上传
         with st.spinner("正在将测试报告安全同步至云端凭证库..."):
             success, msg = upload_report_to_github(custom_file_name, report_html)
             
         if success:
-            st.toast(f"✅ 报告已成功加密同步至 GitHub (report/{custom_file_name})")
-            st.session_state[github_lock_key] = True  # 激活锁，防止重复上传
+            st.toast(f"✅ 报告已成功加密同步至 GitHub ({custom_file_name})")
+            st.session_state[github_lock_key] = "success"
         else:
+            del st.session_state[github_lock_key]  # 失败解开锁以供重试
             st.error(f"❌ 报告云端同步失败，原因: {msg}")
 
-    # 4. 原有的用户手动下载按钮保持不变
+    # 4. 保留原有的本地 HTML 文件下载按钮
     st.write(" ")
     st.download_button(
-        label="📥 导出并下载测试报告",
+        label="📥 导出本地网页版 HTML 报告",
         data=report_html,
-        file_name=f"{user_name}_瑞文测验分析报告_{datetime.now():%Y%m%d}.html",
+        file_name=f"{user_name}_瑞文测验分析报告_{test_date_str}.html",
         mime="text/html",
         type="primary"
     )
