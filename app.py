@@ -333,7 +333,7 @@ elif st.session_state.page == "test":
 # main.py 的页面4 部分
 
 elif st.session_state.page == "finish":
-    st.success("🎉 测试已完成！个性化报告已实时生成。")
+    st.success("🎉 测试已完成！")
     
     if "balloon_shown" not in st.session_state:
         st.balloons()
@@ -395,7 +395,7 @@ elif st.session_state.page == "finish":
     # 4. 原有的用户手动下载按钮保持不变
     st.write(" ")
     st.download_button(
-        label="📥 导出并下载独立网页版 HTML 测试报告",
+        label="📥 导出并下载测试报告",
         data=report_html,
         file_name=f"{user_name}_瑞文测验分析报告_{datetime.now():%Y%m%d}.html",
         mime="text/html",
