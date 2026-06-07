@@ -191,7 +191,7 @@ elif st.session_state.page == "intro":
 # ==========================
 elif st.session_state.page == "test":
     # 每 2 秒刷新一次，兼顾流畅度与性能
-    st_autorefresh(interval=2000, key="timer_refresh")
+    st_autorefresh(interval=1000, key="timer_refresh")
     
     TOTAL_TIME = 40 * 60
     remaining = max(0, TOTAL_TIME - (time.time() - st.session_state.start_time))
