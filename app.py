@@ -8,13 +8,8 @@ from github import Github
 from io import StringIO
 from streamlit_autorefresh import st_autorefresh
 
-
-
-
-
 st.markdown("""
 <style>
-
 div[role="radiogroup"] > label {
     background-color:#f5f5f5;
     border:2px solid #cccccc;
@@ -24,59 +19,36 @@ div[role="radiogroup"] > label {
     font-size:24px !important;
     font-weight:bold;
 }
-
 div[role="radiogroup"] {
     flex-direction:row;
 }
-
 </style>
-""",
-unsafe_allow_html=True)
-
-
-
+""", unsafe_allow_html=True)
 
 # ==========================
 # 读取题库
 # ==========================
-
 @st.cache_data
 def load_questions():
-
-    df = pd.read_csv(
-        "questions.csv",
-        encoding="gb18030"
-    )
-
-    return (
-        df.sort_values("Question_ID")
-          .reset_index(drop=True)
-    )
+    df = pd.read_csv("questions.csv", encoding="gb18030")
+    return df.sort_values("Question_ID").reset_index(drop=True)
 
 questions = load_questions()
-
-
 
 # 预加载图片
 @st.cache_resource
 def preload_images():
-
     images = {}
-
     for _, row in questions.iterrows():
-
         p = Path("IQ_Test_Picture") / str(row["Image"])
-
         images[str(row["Image"])] = Image.open(p)
-
     return images
 
-
+images = preload_images() # 放到全局或按需调用
 
 # ==========================
 # Session State 初始化
 # ==========================
-
 defaults = {
     "page": "info",
     "start_time": None,
@@ -86,79 +58,32 @@ defaults = {
 }
 
 for k, v in defaults.items():
-
     if k not in st.session_state:
         st.session_state[k] = v
 
 # 保存到 GitHub 函数
 def save_to_github(output):
-
-    g = Github(
-        st.secrets["GITHUB_TOKEN"]
-    )
-
-    repo = g.get_repo(
-        f"{st.secrets['GITHUB_OWNER']}/"
-        f"{st.secrets['GITHUB_REPO']}"
-    )
-
+    g = Github(st.secrets["GITHUB_TOKEN"])
+    repo = g.get_repo(f"{st.secrets['GITHUB_OWNER']}/{st.secrets['GITHUB_REPO']}")
     try:
-
-        file = repo.get_contents(
-            "record.csv"
-        )
-
-        old_csv = (
-            file.decoded_content
-            .decode("utf-8-sig")
-        )
-
-        old_df = pd.read_csv(
-            StringIO(old_csv)
-        )
-
-        merged_df = pd.concat(
-            [old_df, output],
-            ignore_index=True
-        )
-
-        new_csv = merged_df.to_csv(
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-        repo.update_file(
-            path="record.csv",
-            message="Add IQ result",
-            content=new_csv,
-            sha=file.sha
-        )
-
+        file = repo.get_contents("record.csv")
+        old_csv = file.decoded_content.decode("utf-8-sig")
+        old_df = pd.read_csv(StringIO(old_csv))
+        merged_df = pd.concat([old_df, output], ignore_index=True)
+        new_csv = merged_df.to_csv(index=False, encoding="utf-8-sig")
+        repo.update_file(path="record.csv", message="Add IQ result", content=new_csv, sha=file.sha)
     except Exception:
-
-        # 第一次创建
-
-        new_csv = output.to_csv(
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-        repo.create_file(
-            path="record.csv",
-            message="Create record.csv",
-            content=new_csv
-        )
+        new_csv = output.to_csv(index=False, encoding="utf-8-sig")
+        repo.create_file(path="record.csv", message="Create record.csv", content=new_csv)
 
 # ==========================
 # 提交测试
 # ==========================
 def submit_test():
-
     if st.session_state.get("submitted", False):
         return
 
     st.session_state.submitted = True
-
     result = {
         "Name": st.session_state["name"],
         "Sex": st.session_state["gender"],
@@ -166,388 +91,201 @@ def submit_test():
         "Date": st.session_state["test_date"]
     }
 
-    # 完成时间（秒）
-    duration_seconds = int(
-        time.time() - st.session_state.start_time
-    )
-
+    duration_seconds = int(time.time() - st.session_state.start_time)
     result["Duration_Seconds"] = duration_seconds
 
     total_score = 0
-
     factor_scores = {}
 
-    # ------------------
-    # 保存原始作答
-    # ------------------
+    for _, row in questions.iterrows():
+        item = str(row["Item"])
+        user_answer = st.session_state.answers.get(item, "未作答")
+        result[f"{item}_raw_response"] = user_answer
 
     for _, row in questions.iterrows():
-
         item = str(row["Item"])
-
-        user_answer = st.session_state.answers.get(
-            item,
-            ""
-        )
-
-        result[
-            f"{item}_raw_response"
-        ] = user_answer
-
-    # ------------------
-    # 计算正确率
-    # ------------------
-
-    for _, row in questions.iterrows():
-
-        item = str(row["Item"])
-
         factor = str(row["Factor"])
-
         correct_answer = str(row["Answer"])
+        user_answer = str(st.session_state.answers.get(item, "未作答"))
 
-        user_answer = str(
-            st.session_state.answers.get(item, "")
-        )
-
-        is_correct = (
-            1 if user_answer == correct_answer else 0
-        )
-
-        result[
-            f"{item}_response"
-        ] = is_correct
-
+        is_correct = 1 if user_answer == correct_answer else 0
+        result[f"{item}_response"] = is_correct
         total_score += is_correct
 
         if factor not in factor_scores:
             factor_scores[factor] = 0
-
         factor_scores[factor] += is_correct
 
-    # ------------------
-    # 因素得分
-    # ------------------
-
     for factor, score in factor_scores.items():
-
         result[f"{factor}_Score"] = score
 
-    # ------------------
-    # 总分
-    # ------------------
-
     result["Total_Score"] = total_score
-
     output = pd.DataFrame([result])
-
-
     st.session_state.result_df = output
     
-    save_to_github(output)
+    try:
+        save_to_github(output)
+    except Exception as e:
+        st.error(f"GitHub同步失败: {e}")
 
     record_path = Path("record.csv")
-
     if record_path.exists():
-
-        output.to_csv(
-            record_path,
-            mode="a",
-            header=False,
-            index=False,
-            encoding="utf-8-sig"
-        )
-
+        output.to_csv(record_path, mode="a", header=False, index=False, encoding="utf-8-sig")
     else:
-
-        output.to_csv(
-            record_path,
-            index=False,
-            encoding="utf-8-sig"
-        )
-
-    st.session_state.submitted = True
+        output.to_csv(record_path, index=False, encoding="utf-8-sig")
 
 # ==========================
 # 页面1：登记
 # ==========================
-
 if st.session_state.page == "info":
-
     st.title("📝 瑞文标准智力测验")
     st.subheader("💡 适用于5.5岁及以上")
-
-    
     st.header("测试登记")
 
     name = st.text_input("姓名")
-
-    gender = st.selectbox(
-        "性别",
-        ["男", "女"]
-    )
-
+    gender = st.selectbox("性别", ["男", "女"])
     ages = [x / 2 for x in range(11, 141)]
-
-    age = st.selectbox(
-        "年龄（下拉选择整岁或者半岁）",
-        ages
-    )
-
-    test_date = st.date_input(
-        "测试日期"
-    )
+    age = st.selectbox("年龄（下拉选择整岁或者半岁）", ages)
+    test_date = st.date_input("测试日期")
 
     if st.button("进入测试"):
-
         if not name:
-
             st.error("请输入姓名")
-
         else:
-
             st.session_state["name"] = name
             st.session_state["gender"] = gender
             st.session_state["age"] = age
-            st.session_state["test_date"] = (
-                test_date.strftime("%Y-%m-%d")
-            )
-
+            st.session_state["test_date"] = test_date.strftime("%Y-%m-%d")
             st.session_state.page = "intro"
-
             st.rerun()
 
 # ==========================
 # 页面2：说明页
 # ==========================
-
 elif st.session_state.page == "intro":
-
     st.header("测试说明")
-
-    st.image(
-        "IQ_Test_Picture/introduction.png",
-        width=1200
-    )
-
-    st.info(
-        "请认真阅读说明。准备好后点击开始测试。"
-    )
+    st.image("IQ_Test_Picture/introduction.png", width=1200)
+    st.info("请认真阅读说明。准备好后点击开始测试。")
 
     if st.button("开始测试"):
-
         st.session_state.start_time = time.time()
-
         st.session_state.page = "test"
-
         st.rerun()
 
 # ==========================
 # 页面3：测试页
 # ==========================
-
 elif st.session_state.page == "test":
-
+    # 每秒自动刷新
     st_autorefresh(interval=1000, key="timer_refresh")
     
-    # 设置用时：40分钟
     TOTAL_TIME = 40 * 60
-
-    remaining = TOTAL_TIME - (time.time() - st.session_state.start_time)
-
-    remaining = max(0, remaining)
+    remaining = max(0, TOTAL_TIME - (time.time() - st.session_state.start_time))
     
-    # 防止重复提交（关键）
-    if remaining <= 0 and not st.session_state.submitted:
-        submit_test()
+    # 🌟【修复点 1】超时立即处理并跳转
+    if remaining <= 0:
+        if not st.session_state.submitted:
+            submit_test()
         st.session_state.page = "finish"
         st.rerun()
     
+    # 🌟【修复点 2】先初始化布局列，再渲染内容
+    col1, col2 = st.columns([3, 1])
+    
+    idx = st.session_state.current_question
+    q = questions.iloc[idx]
+    item = str(q["Item"])
+    
+    with col1:
+        st.markdown(f"### 第 {idx+1} 题 / {len(questions)} 题")
+    
     with col2:
+        # 显示倒计时
         st.markdown(
-            f"""
-            <div style='text-align:right;
-                        font-size:28px;
-                        color:red;'>
-            ⏳ {int(remaining//60):02d}:{int(remaining%60):02d}
-            </div>
-            """,
+            f"<div style='text-align:right; font-size:28px; color:red; font-weight:bold;'>"
+            f"⏳ {int(remaining//60):02d}:{int(remaining%60):02d}"
+            f"</div>",
             unsafe_allow_html=True
         )
     
-    # ------------------
-    # 超时自动提交
-    # ------------------
+    # 显示题目图片
+    st.image(images[str(q["Image"])], width=800)
 
-    if remaining <= 0:
-
-        submit_test()
-
-        st.session_state.page = "finish"
-
-        st.rerun()
-
-    minutes = remaining // 60
-    seconds = remaining % 60
-
-    idx = st.session_state.current_question
-    
-    q = questions.iloc[idx]
-    
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-    
-        st.markdown(
-            f"### 第 {idx+1} 题 / {len(questions)} 题"
-        )
-    
-    with col2:
-    
-        
-
-    images = preload_images()
-
-    st.image(
-        images[str(q["Image"])],
-        width=800
-    )
-
-    # 选项
+    # 选项处理
     option_num = int(q["Options"])
-    
-    choices = ["未作答"] + [
-        str(i)
-        for i in range(1, option_num + 1)
-    ]
-    
-    item = str(q["Item"])
+    choices = ["未作答"] + [str(i) for i in range(1, option_num + 1)]
     
     widget_key = f"question_{idx}"
     
-    # 第一次进入该题时恢复历史答案
+    # 恢复历史答案
     if widget_key not in st.session_state:
+        st.session_state[widget_key] = st.session_state.answers.get(item, "未作答")
     
-        st.session_state[widget_key] = (
-            st.session_state.answers.get(
-                item,
-                "未作答"
-            )
-        )
-    
+    # 🌟【优化点】添加回调函数，确保单选框变动时百分百即时存入 answers
+    def on_answer_change():
+        st.session_state.answers[item] = st.session_state[widget_key]
+
     answer = st.radio(
         "请选择答案",
         choices,
         key=widget_key,
-        horizontal=True
+        horizontal=True,
+        on_change=on_answer_change
     )
     
-    # 保存当前答案
+    # 双重保险：更新当前答案
     st.session_state.answers[item] = answer
 
-
-
-
-
-    
     # ------------------
     # 导航按钮
     # ------------------
-
+    st.write("---") # 添加一条分割线美化界面
+    
     if idx == 0:
-
-        if st.button("下一题"):
-
+        if st.button("下一题", use_container_width=True):
             st.session_state.current_question += 1
-
             st.rerun()
-
     elif idx < len(questions) - 1:
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-
-            if st.button("上一题"):
-
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            if st.button("上一题", use_container_width=True):
                 st.session_state.current_question -= 1
-
                 st.rerun()
-
-        with col2:
-
-            if st.button("下一题"):
-
+        with btn_col2:
+            if st.button("下一题", use_container_width=True):
                 st.session_state.current_question += 1
-
                 st.rerun()
-
     else:
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-
-            if st.button("上一题"):
-
-
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            if st.button("上一题", use_container_width=True):
                 st.session_state.current_question -= 1
-
                 st.rerun()
-
-        with col2:
-
-            if st.button("确认完成作答"):
-
-
+        with btn_col2:
+            if st.button("🏁 确认完成作答", type="primary", use_container_width=True):
                 submit_test()
-
                 st.session_state.page = "finish"
-
                 st.rerun()
 
 # ==========================
 # 页面4：完成
 # ==========================
-
 elif st.session_state.page == "finish":
-
-    st.success("测试已完成")
+    st.success("🎉 测试已完成！")
     
-    # 放气球
     if "balloon_shown" not in st.session_state:
-
         st.balloons()
-    
         st.session_state.balloon_shown = True
 
-    duration = int(
-        time.time()
-        - st.session_state.start_time
-    )
-
-    st.write(
-        f"完成时间：{duration // 60}分{duration % 60}秒"
-    )
+    duration = int(time.time() - st.session_state.start_time)
+    st.write(f"⏱️ 总共完成时间：{duration // 60} 分 {duration % 60} 秒")
 
     if "result_df" in st.session_state:
-
-        csv_data = (
-            st.session_state.result_df
-            .to_csv(
-                index=False,
-                encoding="utf-8-sig"
-            )
-            .encode("utf-8-sig")
-        )
-    
+        csv_data = st.session_state.result_df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
         st.download_button(
-            label="📥 下载测试结果",
+            label="📥 下载测试结果 (CSV)",
             data=csv_data,
-            file_name = (
-                f"{st.session_state['name']}_"
-                f"{datetime.now():%Y%m%d_%H%M%S}.csv"
-            ),
-            mime="text/csv"
+            file_name=f"{st.session_state['name']}_{datetime.now():%Y%m%d_%H%M%S}.csv",
+            mime="text/csv",
+            type="primary"
         )
-
