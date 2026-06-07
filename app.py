@@ -262,15 +262,15 @@ elif st.session_state.page == "test":
     with btn_col1:
         # 如果是第一题，让“上一题”变成不可点击的灰色状态，但依然占位保持对齐
         if idx > 0:
-            if st.button("⬅️ 上一题", use_container_width=True, key=f"prev_{idx}"):
+            if st.button("上一题", use_container_width=True, key=f"prev_{idx}"):
                 move_page(-1)
                 st.rerun()
         else:
-            st.button("⬅️ 上一题", use_container_width=True, disabled=True, key="prev_disabled")
+            st.button("上一题", use_container_width=True, disabled=True, key="prev_disabled")
             
     with btn_col2:
         if idx < len(questions) - 1:
-            if st.button("下一题 ➡️", use_container_width=True, key=f"next_{idx}"):
+            if st.button("下一题", use_container_width=True, key=f"next_{idx}"):
                 move_page(1)
                 st.rerun()
         else:
