@@ -175,7 +175,7 @@ if st.session_state.page == "info":
 # ==========================
 elif st.session_state.page == "intro":
     st.header("测试说明")
-    st.image("IQ_Test_Picture/introduction.png", width=1200)
+    st.image("IQ_Test_Picture/introduction.png", width=1400)
     st.info("请认真阅读说明。准备好后点击开始测试。")
 
     if st.button("开始测试"):
