@@ -6,7 +6,7 @@ from PIL import Image
 from datetime import datetime
 from github import Github
 from io import StringIO
-
+from streamlit_autorefresh import st_autorefresh
 
 
 
@@ -152,11 +152,12 @@ def save_to_github(output):
 # ==========================
 # 提交测试
 # ==========================
-
 def submit_test():
 
-    if st.session_state.submitted:
+    if st.session_state.get("submitted", False):
         return
+
+    st.session_state.submitted = True
 
     result = {
         "Name": st.session_state["name"],
@@ -346,17 +347,34 @@ elif st.session_state.page == "intro":
 # ==========================
 
 elif st.session_state.page == "test":
-   
+
+    st_autorefresh(interval=1000, key="timer_refresh")
+    
     # 设置用时：40分钟
     TOTAL_TIME = 40 * 60
 
-    elapsed = int(
-        time.time()
-        - st.session_state.start_time
-    )
+    remaining = TOTAL_TIME - (time.time() - st.session_state.start_time)
 
-    remaining = TOTAL_TIME - elapsed
-
+    remaining = max(0, remaining)
+    
+    # 防止重复提交（关键）
+    if remaining <= 0 and not st.session_state.submitted:
+        submit_test()
+        st.session_state.page = "finish"
+        st.rerun()
+    
+    with col2:
+        st.markdown(
+            f"""
+            <div style='text-align:right;
+                        font-size:28px;
+                        color:red;'>
+            ⏳ {int(remaining//60):02d}:{int(remaining%60):02d}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    
     # ------------------
     # 超时自动提交
     # ------------------
@@ -386,38 +404,7 @@ elif st.session_state.page == "test":
     
     with col2:
     
-        @st.fragment(run_every="1s")
-        def timer():
         
-            remaining = (
-                TOTAL_TIME
-                - (
-                    time.time()
-                    - st.session_state.start_time
-                )
-            )
-        
-            if remaining <= 0:
-
-        
-                submit_test()
-        
-                st.session_state.page = "finish"
-        
-                st.rerun()
-        
-            st.markdown(
-                f"""
-                <div style='text-align:right;
-                            font-size:28px;
-                            color:red;'>
-                ⏳ {int(remaining//60):02d}:{int(remaining%60):02d}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-    
-        timer()
 
     images = preload_images()
 
