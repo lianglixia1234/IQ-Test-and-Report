@@ -3,6 +3,7 @@ import pandas as pd
 import time
 from pathlib import Path
 from PIL import Image
+from datetime import datetime
 
 
 # 预加载图片
@@ -481,7 +482,10 @@ elif st.session_state.page == "finish":
         st.download_button(
             label="📥 下载测试结果",
             data=csv_data,
-            file_name=f"{st.session_state['name']}_IQ_Result.csv",
+            filename = (
+                f"{st.session_state['name']}_"
+                f"{datetime.now():%Y%m%d_%H%M%S}.csv"
+            ),
             mime="text/csv"
         )
 
