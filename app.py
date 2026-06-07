@@ -167,6 +167,9 @@ def submit_test():
 
     output = pd.DataFrame([result])
 
+
+    st.session_state.result_df = output
+
     record_path = Path("record.csv")
 
     if record_path.exists():
@@ -463,4 +466,22 @@ elif st.session_state.page == "finish":
     st.write(
         f"完成时间：{duration // 60}分{duration % 60}秒"
     )
+
+    if "result_df" in st.session_state:
+
+        csv_data = (
+            st.session_state.result_df
+            .to_csv(
+                index=False,
+                encoding="utf-8-sig"
+            )
+            .encode("utf-8-sig")
+        )
+    
+        st.download_button(
+            label="📥 下载测试结果",
+            data=csv_data,
+            file_name=f"{st.session_state['name']}_IQ_Result.csv",
+            mime="text/csv"
+        )
 
