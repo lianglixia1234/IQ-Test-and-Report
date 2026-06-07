@@ -52,6 +52,7 @@ def load_report_assets():
     return norm_df, text_df
     
 norm_df = load_report_assets()
+text_df = load_report_assets()
 
 # ==============================================================================
 # 🌟 极致空间优化：消除顶部留白 + 选项按钮样式
