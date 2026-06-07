@@ -151,9 +151,7 @@ def submit_test():
 # 页面1：登记
 # ==========================
 if st.session_state.page == "info":
-    st.title("📝 瑞文智力测验")
-    st.subheader("💡 适用于5.5岁及以上")
-    st.header("测试登记")
+    st.title("📝 信息登记")
 
     name = st.text_input("姓名")
     gender = st.selectbox("性别", ["男", "女"])
