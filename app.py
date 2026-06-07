@@ -13,11 +13,43 @@ from report import calculate_report_data, generate_report_html
 # 加载你的资产文件
 @st.cache_data
 def load_report_assets():
-    norm_df = pd.read_csv("Norm.csv", encoding="utf-8")
-    text_df = pd.read_csv("text.csv", encoding="utf-8")
-    return norm_df, text_df
+    import io
 
-norm_df, text_df = load_report_assets()
+    # ------------------ 智能读取函数（自动识别中文字符集） ------------------
+    def smart_read_csv(file_path):
+        # 依次尝试：带签名的UTF-8(Excel特有)、标准UTF-8、中文国标码、老版中文码
+        encodings = ['utf-8-sig', 'utf-8', 'gb18030', 'gbk']
+        
+        for enc in encodings:
+            try:
+                # 1. 先用原生 open 打开，忽略无法识别的杂质字符
+                with open(file_path, "r", encoding=enc, errors="ignore") as f:
+                    content = f.read()
+                
+                # 2. 如果成功读出文本，检查它是否包含内容
+                if content.strip():
+                    # 3. 用 StringIO 喂给 pandas，并强制指定 python 引擎（对中文最友好）
+                    df = pd.read_csv(io.StringIO(content), engine="python")
+                    # 如果成功生成了合法的 DataFrame 且有列名，直接返回
+                    if not df.empty and len(df.columns) > 0:
+                        return df
+            except Exception:
+                continue # 当前编码失败，尝试下一种
+                
+        # 极其罕见的兜底：如果都失败了，返回空表，不让程序崩溃
+        return pd.DataFrame()
+
+    # ------------------ 2. 分别加载两张中文表格 ------------------
+    norm_df = smart_read_csv("Norm.csv")
+    text_df = smart_read_csv("text.csv")
+
+    # ------------------ 3. 安全性校验提醒 ------------------
+    if norm_df.empty:
+        st.error("⚠️ 无法解析 Norm.csv，请检查文件名大小写或文件是否损坏。")
+    if text_df.empty:
+        st.error("⚠️ 无法解析 text.csv，请检查文件名大小写或文件是否损坏。")
+
+    return norm_df, text_df
 
 
 # ==============================================================================
