@@ -198,13 +198,32 @@ elif st.session_state.page == "intro":
 # ==========================
 # 页面3：测试页（全新左右非对称布局）
 # ==========================
+# ==========================
+# 页面3：测试页（每分钟刷新 - 极致流畅版）
+# ==========================
 elif st.session_state.page == "test":
-    # 每 2 秒刷新一次，兼顾流畅度与性能
-    st_autorefresh(interval=2000, key="timer_refresh")
+    # 🌟 极致优化：每 60000 毫秒（1分钟）自动刷新一次，把对按钮的干扰降到最低
+    st_autorefresh(interval=60000, key="timer_refresh")
     
     TOTAL_TIME = 40 * 60
     remaining = max(0, TOTAL_TIME - (time.time() - st.session_state.start_time))
     
+    # 计算剩余的整数分钟
+    remaining_minutes = int(remaining // 60)
+    
+    # 🌟 核心定义：定义按钮的回调函数（Callback）
+    # 确保点击按钮时瞬间响应，绝不吞键
+    def handle_prev():
+        st.session_state.current_question -= 1
+
+    def handle_next():
+        st.session_state.current_question += 1
+
+    def handle_submit():
+        submit_test()
+        st.session_state.page = "finish"
+
+    # 时间到了自动交卷
     if remaining <= 0:
         if not st.session_state.submitted:
             submit_test()
@@ -216,7 +235,7 @@ elif st.session_state.page == "test":
     item = str(q["Item"])
     
     # --------------------------------------------------------------------------
-    # 🌟 整体分为左右两列：左边 8.5成宽度放题目核心，右边 1.5成宽度放翻页按钮
+    # 🌟 整体布局：左边 8.5成宽度放题目核心，右边 1.5成宽度放翻页按钮
     # --------------------------------------------------------------------------
     main_col, side_col = st.columns([8.5, 1.5])
     
@@ -224,26 +243,26 @@ elif st.session_state.page == "test":
     # 【左侧大区域】：信息 + 图片 + 选项
     # ==========================
     with main_col:
-        # 1. 上方：题目数 + 时间并排
+        # 上方：题目数 + 时间并排（只显示剩余分钟）
         top_col1, top_col2 = st.columns([2, 1])
         with top_col1:
             st.markdown(f"### 📝 第 {idx+1} / {len(questions)} 题")
         with top_col2:
             st.markdown(
                 f"<div style='text-align:right; font-size:24px; color:red; font-weight:bold; margin-top:-2px;'> "
-                f"⏳ {int(remaining//60):02d}:{int(remaining%60):02d}"
+                f"⏳ 剩余 {remaining_minutes} 分钟"
                 f"</div>",
                 unsafe_allow_html=True
             )
         
-        # 2. 中间：题目图片
+        # 中间：题目图片
         img_key = str(q["Image"])
         if img_key in images:
             st.image(images[img_key], width=1000)
         else:
             st.error(f"❌ 未找到图片: {img_key}")
             
-        # 3. 底部：选项（紧跟在图片下方）
+        # 底部：选项
         option_num = int(q["Options"])
         choices = ["未作答"] + [str(i) for i in range(1, option_num + 1)]
         
@@ -264,36 +283,24 @@ elif st.session_state.page == "test":
         st.session_state.answers[item] = answer
 
     # ==========================
-    # 【右侧小区域】：两行垂直对齐的按钮
+    # 【右侧小区域】：绑定回调，指哪打哪
     # ==========================
     with side_col:
-        # 为了让右侧按钮在视觉上有一些向下的偏移，对齐左侧的图片，可以加一点虚空留白
         st.markdown("<div style='margin-top: 40px;'></div>", unsafe_allow_html=True)
         
-        def move_page(delta):
-            st.session_state.current_question += delta
-
         # 第一行：上一题按钮
         if idx > 0:
-            if st.button("\n◀️ 上一题", width=100, key=f"prev_{idx}"):
-                move_page(-1)
-                st.rerun()
+            st.button("\n◀️ 上一题", use_container_width=True, key=f"prev_{idx}", on_click=handle_prev)
         else:
-            st.button("\n◀️ 上一题", width=100, disabled=True, key="prev_disabled")
+            st.button("\n◀️ 上一题", use_container_width=True, disabled=True, key="prev_disabled")
         
-        # 增加两个按钮之间的垂直间距
         st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
         
         # 第二行：下一题/确认完成按钮
         if idx < len(questions) - 1:
-            if st.button("\n▶️ 下一题", width=100, key=f"next_{idx}"):
-                move_page(1)
-                st.rerun()
+            st.button("\n下一题 ▶️ ", use_container_width=True, key=f"next_{idx}", on_click=handle_next)
         else:
-            if st.button("✅ 确认完成作答", type="primary", use_container_width=True, key="submit_btn"):
-                submit_test()
-                st.session_state.page = "finish"
-                st.rerun()
+            st.button("✅ 确认完成作答", type="primary", use_container_width=True, key="submit_btn", on_click=handle_submit)
 # ==========================
 # ==========================
 # main.py 的页面4 部分
