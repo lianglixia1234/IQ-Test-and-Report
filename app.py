@@ -151,7 +151,7 @@ def submit_test():
 # 页面1：登记
 # ==========================
 if st.session_state.page == "info":
-    st.title("📝 瑞文标准智力测验")
+    st.title("📝 瑞文智力测验")
     st.subheader("💡 适用于5.5岁及以上")
     st.header("测试登记")
 
