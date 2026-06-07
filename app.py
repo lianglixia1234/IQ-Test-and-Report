@@ -69,26 +69,7 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ==========================
-# 保存当前题答案
-# ==========================
 
-def save_current_answer():
-
-    idx = st.session_state.current_question
-
-    key = f"question_{idx}"
-
-    if key not in st.session_state:
-        return
-
-    q = questions.iloc[idx]
-
-    item = str(q["Item"])
-
-    st.session_state.answers[item] = (
-        st.session_state[key]
-    )
 
 # ==========================
 # 提交测试
@@ -365,56 +346,41 @@ elif st.session_state.page == "test":
     )
 
     st.image(
-        str(image_path),
+        load_image(image_path),
         width=800
     )
 
     # 选项
     option_num = int(q["Options"])
-
-    choices = ["未作答"] + list(
-        range(1, option_num + 1)
-    )
+ 
 
     item = str(q["Item"])
 
-    previous_answer = (
-        st.session_state.answers.get(item)
+    choices = ["未作答"] + [
+        str(i)
+        for i in range(1, option_num + 1)
+    ]
+    
+    widget_key = f"question_{idx}"
+    
+    # 如果这题之前答过
+    saved_answer = st.session_state.answers.get(
+        item,
+        "未作答"
     )
-
-    radio_index = None
-
-    if previous_answer in choices:
-        radio_index = choices.index(
-            previous_answer
-        )
-
+    
+    # 每次进入题目都同步显示已保存答案
+    st.session_state[widget_key] = saved_answer
+    
     answer = st.radio(
         "请选择答案",
         choices,
-        horizontal=True,
-        key=f"question_{idx}"
+        key=widget_key,
+        horizontal=True
     )
     
-    
-
-    if answer != "未作答":
-
-        st.session_state.answers[item] = answer
-    
-        if idx < len(questions) - 1:
-    
-            st.session_state.current_question += 1
-    
-            st.rerun()
-    
-        else:
-    
-            submit_test()
-    
-            st.session_state.page = "finish"
-    
-            st.rerun()
+    # 实时保存当前选择
+    st.session_state.answers[item] = answer
 
 
 
