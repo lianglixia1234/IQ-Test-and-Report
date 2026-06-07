@@ -1,3 +1,5 @@
+import numpy as np
+
 def generate_report_html(data):
     """
     根据《智力测试模板.docx》深度定制的 HTML 报告模板
@@ -113,7 +115,7 @@ def generate_report_html(data):
 # ---------------------------------------------------------------------------------------------
 # 把用户的年龄和总分在你的 Norm.csv 里比对，查出百分位数；再拿着百分位数去 text.csv 里把对应的解读和建议捞出来
 
-import numpy as np
+
 
 def calculate_report_data(name, gender, age, test_date, total_score, factor_scores, norm_df, text_df):
     """
@@ -187,3 +189,5 @@ def calculate_report_data(name, gender, age, test_date, total_score, factor_scor
     }
     
     return report_data
+
+
