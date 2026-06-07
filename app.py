@@ -13,8 +13,8 @@ from report import calculate_report_data, generate_report_html
 # 加载你的资产文件
 @st.cache_data
 def load_report_assets():
-    norm_df = pd.read_csv("Norm.xlsx - Sheet1.csv", encoding="utf-8")
-    text_df = pd.read_csv("text.xls - Sheet1.csv", encoding="utf-8")
+    norm_df = pd.read_csv("Norm.csv", encoding="utf-8")
+    text_df = pd.read_csv("text.csv", encoding="utf-8")
     return norm_df, text_df
 
 norm_df, text_df = load_report_assets()
