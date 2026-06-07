@@ -264,18 +264,18 @@ elif st.session_state.page == "test":
 
         # 第一行：上一题按钮
         if idx > 0:
-            if st.button("\n◀️ 上一题", use_container_width=True, key=f"prev_{idx}"):
+            if st.button("\n◀️ 上一题", width="stretch", key=f"prev_{idx}"):
                 move_page(-1)
                 st.rerun()
         else:
-            st.button("\n◀️ 上一题", use_container_width=True, disabled=True, key="prev_disabled")
+            st.button("\n◀️ 上一题", width="stretch", disabled=True, key="prev_disabled")
         
         # 增加两个按钮之间的垂直间距
         st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
         
         # 第二行：下一题/确认完成按钮
         if idx < len(questions) - 1:
-            if st.button("\n▶️ 下一题", use_container_width=True, key=f"next_{idx}"):
+            if st.button("\n▶️ 下一题", width="stretch", key=f"next_{idx}"):
                 move_page(1)
                 st.rerun()
         else:
