@@ -187,7 +187,7 @@ elif st.session_state.page == "intro":
 
 
 # ==========================
-# 页面3：测试页（紧凑同行版）
+# 页面3：测试页
 # ==========================
 elif st.session_state.page == "test":
     # 每 1 秒刷新一次，兼顾流畅度与性能
@@ -207,77 +207,82 @@ elif st.session_state.page == "test":
     item = str(q["Item"])
     
     # --------------------------------------------------------------------------
-    # 🌟 顶端紧凑布局：题号与倒计时并排
+    # 🌟 核心布局：左边放图片(col_left)，右边放控制台(col_right)
     # --------------------------------------------------------------------------
-    top_col1, top_col2 = st.columns([2, 1])
-    with top_col1:
-        st.markdown(f"### 📝 第 {idx+1} / {len(questions)} 题")
-    with top_col2:
-        st.markdown(
-            f"<div style='text-align:right; font-size:26px; color:red; font-weight:bold; margin-top:-5px;'>"
-            f"⏳ {int(remaining//60):02d}:{int(remaining%60):02d}"
-            f"</div>",
-            unsafe_allow_html=True
-        )
+    col_left, col_right = st.columns([7, 3])
     
-    # 显示图片
-    img_key = str(q["Image"])
-    if img_key in images:
-        st.image(images[img_key], width=800)
-    else:
-        st.error(f"❌ 未找到图片: {img_key}")
-
-    # 选项处理
-    option_num = int(q["Options"])
-    choices = ["未作答"] + [str(i) for i in range(1, option_num + 1)]
-    
-    widget_key = f"question_{idx}"
-    if widget_key not in st.session_state:
-        st.session_state[widget_key] = st.session_state.answers.get(item, "未作答")
-    
-    def on_answer_change():
-        st.session_state.answers[item] = st.session_state[widget_key]
-
-    answer = st.radio(
-        "请选择答案：",
-        choices,
-        key=widget_key,
-        horizontal=True,
-        on_change=on_answer_change
-    )
-    st.session_state.answers[item] = answer
-
-    # --------------------------------------------------------------------------
-    # 🌟 核心修改：上一题和下一题严格限制在【同一行】，绝不换行
-    # --------------------------------------------------------------------------
-    st.write("---")
-    
-    # 用 columns 把一行均分成两半
-    btn_col1, btn_col2 = st.columns(2)
-    
-    # 统一翻页逻辑
-    def move_page(delta):
-        st.session_state.current_question += delta
-
-    with btn_col1:
-        # 如果是第一题，让“上一题”变成不可点击的灰色状态，但依然占位保持对齐
-        if idx > 0:
-            if st.button("上一题", use_container_width=True, key=f"prev_{idx}"):
-                move_page(-1)
-                st.rerun()
+    # --- 左侧：题目图片 ---
+    with col_left:
+        img_key = str(q["Image"])
+        if img_key in images:
+            # use_container_width=True 让图片自适应左侧容器宽度，防止撑大页面
+            st.image(images[img_key], use_container_width=True)
         else:
-            st.button("上一题", use_container_width=True, disabled=True, key="prev_disabled")
+            st.error(f"❌ 未找到图片: {img_key}")
             
-    with btn_col2:
-        if idx < len(questions) - 1:
-            if st.button("下一题", use_container_width=True, key=f"next_{idx}"):
-                move_page(1)
-                st.rerun()
-        else:
-            if st.button("✅ 确认完成作答", type="primary", use_container_width=True, key="submit_btn"):
-                submit_test()
-                st.session_state.page = "finish"
-                st.rerun()
+    # --- 右侧：所有操作组件（题号、倒计时、选项、按钮） ---
+    with col_right:
+        # 1. 题号与倒计时（并排紧凑显示）
+        meta_col1, meta_col2 = st.columns([1, 1])
+        with meta_col1:
+            st.markdown(f"##### 📝 {idx+1} / {len(questions)}")
+        with meta_col2:
+            st.markdown(
+                f"<div style='text-align:right; font-size:22px; color:red; font-weight:bold; margin-top:-2px;'>"
+                f"⏳ {int(remaining//60):02d}:{int(remaining%60):02d}"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+            
+        st.write("---")
+        
+        # 2. 选择答案区域
+        option_num = int(q["Options"])
+        choices = ["未作答"] + [str(i) for i in range(1, option_num + 1)]
+        
+        widget_key = f"question_{idx}"
+        if widget_key not in st.session_state:
+            st.session_state[widget_key] = st.session_state.answers.get(item, "未作答")
+        
+        def on_answer_change():
+            st.session_state.answers[item] = st.session_state[widget_key]
+
+        # 减小了一点字体和间距，确保右侧不拥挤
+        answer = st.radio(
+            "请选择答案：",
+            choices,
+            key=widget_key,
+            horizontal=True,
+            on_change=on_answer_change
+        )
+        st.session_state.answers[item] = answer
+        
+        st.write("---")
+        
+        # 3. 导航按钮（严格并在同一行，紧跟在单选框下方）
+        btn_col1, btn_col2 = st.columns(2)
+        
+        def move_page(delta):
+            st.session_state.current_question += delta
+
+        with btn_col1:
+            if idx > 0:
+                if st.button("◀️上一题", use_container_width=True, key=f"prev_{idx}"):
+                    move_page(-1)
+                    st.rerun()
+            else:
+                st.button("◀️上一题", use_container_width=True, disabled=True, key="prev_disabled")
+                
+        with btn_col2:
+            if idx < len(questions) - 1:
+                if st.button("▶️下一题", use_container_width=True, key=f"next_{idx}"):
+                    move_page(1)
+                    st.rerun()
+            else:
+                if st.button("✅ 确认完成作答", type="primary", use_container_width=True, key="submit_btn"):
+                    submit_test()
+                    st.session_state.page = "finish"
+                    st.rerun()
 
 # ==========================
 # 页面4：完成
