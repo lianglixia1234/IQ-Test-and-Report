@@ -50,7 +50,8 @@ def load_report_assets():
         st.error("⚠️ 无法解析 text.csv，请检查文件名大小写或文件是否损坏。")
 
     return norm_df, text_df
-
+    
+norm_df = load_report_assets()
 
 # ==============================================================================
 # 🌟 极致空间优化：消除顶部留白 + 选项按钮样式
