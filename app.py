@@ -8,15 +8,28 @@ from github import Github
 from io import StringIO
 from streamlit_autorefresh import st_autorefresh
 
+# ==============================================================================
+# 🌟 极致空间优化：消除顶部留白 + 选项按钮样式
+# ==============================================================================
 st.markdown("""
 <style>
+/* 消除 Streamlit 默认的顶部大留白 */
+.block-container {
+    padding-top: 1rem !important;
+    padding-bottom: 0rem !important;
+}
+/* 紧凑化标题和组件之间的间距 */
+div[data-testid="stVerticalBlock"] > div {
+    padding-bottom: 0.5rem !important;
+}
+/* 单选框样式 */
 div[role="radiogroup"] > label {
     background-color:#f5f5f5;
     border:2px solid #cccccc;
     border-radius:8px;
-    padding:10px 20px;
-    margin-right:10px;
-    font-size:24px !important;
+    padding:6px 15px;
+    margin-right:8px;
+    font-size:20px !important;
     font-weight:bold;
 }
 div[role="radiogroup"] {
