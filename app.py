@@ -273,7 +273,7 @@ elif st.session_state.page == "test":
         # 2. 中间：题目图片
         img_key = str(q["Image"])
         if img_key in images:
-            st.image(images[img_key], use_container_width=True)
+            st.image(images[img_key], width=1000)
         else:
             st.error(f"❌ 未找到图片: {img_key}")
             
