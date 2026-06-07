@@ -6,10 +6,6 @@ from PIL import Image
 from datetime import datetime
 
 
-# 预加载图片
-@st.cache_resource
-def load_image(path):
-    return Image.open(path)
 
 
 
@@ -57,6 +53,24 @@ def load_questions():
     )
 
 questions = load_questions()
+
+
+
+# 预加载图片
+@st.cache_resource
+def preload_images():
+
+    images = {}
+
+    for _, row in questions.iterrows():
+
+        p = Path("IQ_Test_Picture") / str(row["Image"])
+
+        images[str(row["Image"])] = Image.open(p)
+
+    return images
+
+
 
 # ==========================
 # Session State 初始化
@@ -252,7 +266,7 @@ elif st.session_state.page == "intro":
 
     st.image(
         "IQ_Test_Picture/introduction.png",
-        width=1000
+        width=1200
     )
 
     st.info(
@@ -345,14 +359,10 @@ elif st.session_state.page == "test":
     
         timer()
 
-    # 图片
-    image_path = (
-        Path("IQ_Test_Picture")
-        / str(q["Image"])
-    )
+    images = preload_images()
 
     st.image(
-        load_image(image_path),
+        images[str(q["Image"])],
         width=800
     )
 
@@ -456,8 +466,13 @@ elif st.session_state.page == "test":
 elif st.session_state.page == "finish":
 
     st.success("测试已完成")
+    
+    # 放气球
+    if "balloon_shown" not in st.session_state:
 
-    st.balloons()
+        st.balloons()
+    
+        st.session_state.balloon_shown = True
 
     duration = int(
         time.time()
@@ -482,7 +497,7 @@ elif st.session_state.page == "finish":
         st.download_button(
             label="📥 下载测试结果",
             data=csv_data,
-            filename = (
+            file_name = (
                 f"{st.session_state['name']}_"
                 f"{datetime.now():%Y%m%d_%H%M%S}.csv"
             ),
