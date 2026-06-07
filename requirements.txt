@@ -2,4 +2,4 @@ streamlit
 pandas
 time
 Pillow
-PyGithub==2.3.0
+PyGithub
