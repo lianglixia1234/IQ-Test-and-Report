@@ -190,7 +190,7 @@ elif st.session_state.page == "intro":
 # 页面3：测试页（紧凑同行版）
 # ==========================
 elif st.session_state.page == "test":
-    # 每 2 秒刷新一次，兼顾流畅度与性能
+    # 每 1 秒刷新一次，兼顾流畅度与性能
     st_autorefresh(interval=1000, key="timer_refresh")
     
     TOTAL_TIME = 40 * 60
