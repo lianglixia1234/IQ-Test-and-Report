@@ -10,49 +10,6 @@ from streamlit_autorefresh import st_autorefresh
 
 # 🌟 从你自己写的 report.py 文件中，导入这两个核心函数
 from report import calculate_report_data, generate_report_html
-# 加载你的资产文件
-@st.cache_data
-def load_report_assets():
-    import io
-
-    # ------------------ 智能读取函数（自动识别中文字符集） ------------------
-    def smart_read_csv(file_path):
-        # 依次尝试：带签名的UTF-8(Excel特有)、标准UTF-8、中文国标码、老版中文码
-        encodings = ['utf-8-sig', 'utf-8', 'gb18030', 'gbk']
-        
-        for enc in encodings:
-            try:
-                # 1. 先用原生 open 打开，忽略无法识别的杂质字符
-                with open(file_path, "r", encoding=enc, errors="ignore") as f:
-                    content = f.read()
-                
-                # 2. 如果成功读出文本，检查它是否包含内容
-                if content.strip():
-                    # 3. 用 StringIO 喂给 pandas，并强制指定 python 引擎（对中文最友好）
-                    df = pd.read_csv(io.StringIO(content), engine="python")
-                    # 如果成功生成了合法的 DataFrame 且有列名，直接返回
-                    if not df.empty and len(df.columns) > 0:
-                        return df
-            except Exception:
-                continue # 当前编码失败，尝试下一种
-                
-        # 极其罕见的兜底：如果都失败了，返回空表，不让程序崩溃
-        return pd.DataFrame()
-
-    # ------------------ 2. 分别加载两张中文表格 ------------------
-    norm_df = smart_read_csv("Norm.csv")
-    text_df = smart_read_csv("text.csv")
-
-    # ------------------ 3. 安全性校验提醒 ------------------
-    if norm_df.empty:
-        st.error("⚠️ 无法解析 Norm.csv，请检查文件名大小写或文件是否损坏。")
-    if text_df.empty:
-        st.error("⚠️ 无法解析 text.csv，请检查文件名大小写或文件是否损坏。")
-
-    return norm_df, text_df
-    
-norm_df = load_report_assets()
-text_df = load_report_assets()
 
 # ==============================================================================
 # 🌟 极致空间优化：消除顶部留白 + 选项按钮样式
@@ -359,7 +316,7 @@ elif st.session_state.page == "finish":
 
     total_score = sum(factor_scores.values())
 
-    # 2. 核心调用：使用跨文件导入的计算函数清洗数据
+    # 2. 核心调用：清洗数据（彻底移除了旧的 norm_df 和 text_df 传参）
     user_name = st.session_state.get("name", "测试者")
     report_data = calculate_report_data(
         name=user_name,
@@ -367,9 +324,7 @@ elif st.session_state.page == "finish":
         age=st.session_state.get("age", 10.0),
         test_date=st.session_state.get("test_date", datetime.now().strftime("%Y-%m-%d")),
         total_score=total_score,
-        factor_scores=factor_scores,
-        norm_df=norm_df,
-        text_df=text_df
+        factor_scores=factor_scores
     )
 
     # 3. 核心调用：使用跨文件导入的 HTML 函数生成漂亮的前端排版
@@ -379,11 +334,8 @@ elif st.session_state.page == "finish":
     st.markdown(report_html, unsafe_allow_html=True)
 
     # --------------------------------------------------------------------------
-    # 🌟 核心新增：自动将报告上传到 GitHub 的 report/ 文件夹下
+    # 🌟 自动将报告上传到 GitHub 的 report/ 文件夹下
     # --------------------------------------------------------------------------
-    # 引入我们刚才写在 report.py 里的上传函数
-    from report import upload_report_to_github
-    
     # 避免页面因 st_autorefresh 刷新导致重复提交，用 session_state 加锁锁住
     github_lock_key = f"uploaded_{st.session_state.start_time}"
     if github_lock_key not in st.session_state:
@@ -409,5 +361,3 @@ elif st.session_state.page == "finish":
         mime="text/html",
         type="primary"
     )
-# 页面4：完成与报告生成页
-# ==========================
