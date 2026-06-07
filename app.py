@@ -389,7 +389,7 @@ elif st.session_state.page == "test":
             previous_answer
         )
 
-    st.radio(
+    answer = st.radio(
         "请选择答案",
         choices,
         horizontal=True,
