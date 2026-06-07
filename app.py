@@ -297,8 +297,8 @@ elif st.session_state.page == "test":
                 st.rerun()
 # ==========================
 # ==========================
-# 页面4：完成与报告生成页
-# ==========================
+# main.py 的页面4 部分
+
 elif st.session_state.page == "finish":
     st.success("🎉 测试已完成！个性化报告已实时生成。")
     
@@ -318,9 +318,10 @@ elif st.session_state.page == "finish":
 
     total_score = sum(factor_scores.values())
 
-    # 2. 🌟 核心调用：使用跨文件导入的计算函数清洗数据
+    # 2. 核心调用：使用跨文件导入的计算函数清洗数据
+    user_name = st.session_state.get("name", "测试者")
     report_data = calculate_report_data(
-        name=st.session_state.get("name", "测试者"),
+        name=user_name,
         gender=st.session_state.get("gender", "男"),
         age=st.session_state.get("age", 10.0),
         test_date=st.session_state.get("test_date", datetime.now().strftime("%Y-%m-%d")),
@@ -330,18 +331,42 @@ elif st.session_state.page == "finish":
         text_df=text_df
     )
 
-    # 3. 🌟 核心调用：使用跨文件导入的 HTML 函数生成漂亮的前端排版
+    # 3. 核心调用：使用跨文件导入的 HTML 函数生成漂亮的前端排版
     report_html = generate_report_html(report_data)
     
-    # 渲染到主界面
+    # 渲染到主界面供用户查看
     st.markdown(report_html, unsafe_allow_html=True)
 
-    # 4. 导出和下载功能
+    # --------------------------------------------------------------------------
+    # 🌟 核心新增：自动将报告上传到 GitHub 的 report/ 文件夹下
+    # --------------------------------------------------------------------------
+    # 引入我们刚才写在 report.py 里的上传函数
+    from report import upload_report_to_github
+    
+    # 避免页面因 st_autorefresh 刷新导致重复提交，用 session_state 加锁锁住
+    github_lock_key = f"uploaded_{st.session_state.start_time}"
+    if github_lock_key not in st.session_state:
+        # 为当前用户生成一个规范的文件名
+        custom_file_name = f"{user_name}_瑞文测验报告_{datetime.now():%Y%m%d_%H%M%S}.html"
+        
+        # 唤醒上传
+        with st.spinner("正在将测试报告安全同步至云端凭证库..."):
+            success, msg = upload_report_to_github(custom_file_name, report_html)
+            
+        if success:
+            st.toast(f"✅ 报告已成功加密同步至 GitHub (report/{custom_file_name})")
+            st.session_state[github_lock_key] = True  # 激活锁，防止重复上传
+        else:
+            st.error(f"❌ 报告云端同步失败，原因: {msg}")
+
+    # 4. 原有的用户手动下载按钮保持不变
     st.write(" ")
     st.download_button(
-        label="📥 导出并下载测试报告",
+        label="📥 导出并下载独立网页版 HTML 测试报告",
         data=report_html,
-        file_name=f"{st.session_state.get('name')}_瑞文测验分析报告_{datetime.now():%Y%m%d}.html",
+        file_name=f"{user_name}_瑞文测验分析报告_{datetime.now():%Y%m%d}.html",
         mime="text/html",
         type="primary"
     )
+# 页面4：完成与报告生成页
+# ==========================
