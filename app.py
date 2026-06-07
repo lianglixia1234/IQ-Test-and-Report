@@ -4,7 +4,8 @@ import time
 from pathlib import Path
 from PIL import Image
 from datetime import datetime
-
+from github import Github
+from io import StringIO
 
 
 
@@ -89,7 +90,64 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
+# 保存到 GitHub 函数
+def save_to_github(output):
 
+    g = Github(
+        st.secrets["GITHUB_TOKEN"]
+    )
+
+    repo = g.get_repo(
+        f"{st.secrets['GITHUB_OWNER']}/"
+        f"{st.secrets['GITHUB_REPO']}"
+    )
+
+    try:
+
+        file = repo.get_contents(
+            "record.csv"
+        )
+
+        old_csv = (
+            file.decoded_content
+            .decode("utf-8-sig")
+        )
+
+        old_df = pd.read_csv(
+            StringIO(old_csv)
+        )
+
+        merged_df = pd.concat(
+            [old_df, output],
+            ignore_index=True
+        )
+
+        new_csv = merged_df.to_csv(
+            index=False,
+            encoding="utf-8-sig"
+        )
+
+        repo.update_file(
+            path="record.csv",
+            message="Add IQ result",
+            content=new_csv,
+            sha=file.sha
+        )
+
+    except Exception:
+
+        # 第一次创建
+
+        new_csv = output.to_csv(
+            index=False,
+            encoding="utf-8-sig"
+        )
+
+        repo.create_file(
+            path="record.csv",
+            message="Create record.csv",
+            content=new_csv
+        )
 
 # ==========================
 # 提交测试
@@ -184,6 +242,8 @@ def submit_test():
 
 
     st.session_state.result_df = output
+    
+    save_to_github(output)
 
     record_path = Path("record.csv")
 
