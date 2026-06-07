@@ -204,11 +204,13 @@ def calculate_report_data(name, gender, age, test_date, total_score, factor_scor
     }
 
 def upload_report_to_github(file_name, html_content):
-    """GitHub 自动同步函数"""
+    """GitHub 自动同步函数（适配扁平化 Secrets）"""
     try:
-        TOKEN = st.secrets["github"]["token"]
-        REPO_NAME = st.secrets["github"]["repo"]
-        BRANCH = st.secrets["github"].get("branch", "main")
+        # 🌟 改为直接读取你现有的全大写变量名
+        TOKEN = st.secrets["GITHUB_TOKEN"]
+        REPO_NAME = st.secrets["GITHUB_REPO"]
+        BRANCH = "main" # 或者使用 st.secrets.get("GITHUB_BRANCH", "main")
+        
         g = Github(TOKEN)
         repo = g.get_repo(REPO_NAME)
         github_path = f"report/{file_name}"
