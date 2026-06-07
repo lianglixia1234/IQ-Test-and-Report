@@ -304,7 +304,9 @@ elif st.session_state.page == "test":
     seconds = remaining % 60
 
     idx = st.session_state.current_question
-
+    
+    q = questions.iloc[idx]
+    
     col1, col2 = st.columns([3, 1])
     
     with col1:
