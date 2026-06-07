@@ -204,16 +204,24 @@ def calculate_report_data(name, gender, age, test_date, total_score, factor_scor
     }
 
 def upload_report_to_github(file_name, html_content):
-    """GitHub 自动同步函数（适配扁平化 Secrets）"""
+    """GitHub 自动同步函数（完美兼容分开的 OWNER 和 REPO）"""
     try:
-        # 🌟 改为直接读取你现有的全大写变量名
+        # 1. 别怕，我们直接从你的 secrets 里面各取所需
         TOKEN = st.secrets["GITHUB_TOKEN"]
+        OWNER = st.secrets["GITHUB_OWNER"]
         REPO_NAME = st.secrets["GITHUB_REPO"]
-        BRANCH = "main" # 或者使用 st.secrets.get("GITHUB_BRANCH", "main")
+        BRANCH = "main"  # 如果你的主分支叫 master，记得改成 "master"
         
+        # 🌟 核心修复：把 "用户名" 和 "仓库名" 用斜杠 / 拼起来！
+        FULL_REPO_PATH = f"{OWNER}/{REPO_NAME}"
+        
+        # 2. 用拼装好的完整路径去敲 GitHub 的门
         g = Github(TOKEN)
-        repo = g.get_repo(REPO_NAME)
-        github_path = f"report/{file_name}"
+        repo = g.get_repo(FULL_REPO_PATH)  # 绝对不会再 404 了
+        
+        # 确保路径是 report/文件名
+        github_path = file_name if file_name.startswith("report/") else f"report/{file_name}"
+        
         try:
             contents = repo.get_contents(github_path, ref=BRANCH)
             repo.update_file(github_path, f"Update {file_name}", html_content, contents.sha, branch=BRANCH)
