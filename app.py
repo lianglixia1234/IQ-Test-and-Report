@@ -55,7 +55,7 @@ def load_questions():
           .reset_index(drop=True)
     )
 
-questions = load_questions()reset_index(drop=True)
+questions = load_questions()
 
 # ==========================
 # Session State 初始化
