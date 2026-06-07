@@ -288,7 +288,7 @@ elif st.session_state.page == "intro":
 elif st.session_state.page == "test":
    
     # 设置用时：40分钟
-    TOTAL_TIME = 2 * 60
+    TOTAL_TIME = 40 * 60
 
     elapsed = int(
         time.time()
