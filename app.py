@@ -317,10 +317,10 @@ elif st.session_state.page == "finish":
 
     total_score = sum(factor_scores.values())
 
-    # 🌟 局部导入，确保组件干净
+    # 🌟 局部安全导入
     from report import calculate_report_data, generate_report_html, upload_report_to_github
 
-    # 2. 核心调用：清洗数据（彻底移除所有 datetime 获取，完全复用 test_date）
+    # 2. 核心调用：清洗数据
     user_name = st.session_state.get("name", "测试者")
     test_date_str = st.session_state.get("test_date", "未知日期")
     
@@ -333,33 +333,23 @@ elif st.session_state.page == "finish":
         factor_scores=factor_scores
     )
 
-    # 3. 核心调用：生成 HTML 并在顶部注入“一键打印 PDF”的前端交互按钮
-    raw_html = generate_report_html(report_data)
+    # 3. 核心调用：直接生成纯净的报告 HTML 源码（去掉了 PDF 打印按钮）
+    report_html = generate_report_html(report_data)
     
-    # 💡 巧妙嵌入前端打印控制，点击即可完美调用系统底层转换为 PDF
-    pdf_button_html = f"""
-    <div style="max-width: 850px; margin: 10px auto; text-align: right; font-family: 'Microsoft YaHei', sans-serif;">
-        <button onclick="window.print()" style="padding: 10px 20px; background-color: #67c23a; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            🖨️ 一键打印或另存为 PDF 报告
-        </button>
-    </div>
-    """
-    report_html = pdf_button_html + raw_html
-    
-    # 渲染到主界面供用户查看和交互
+    # 🌟 渲染到主界面（纯净 HTML 完美排版，绝无乱码）
     st.markdown(report_html, unsafe_allow_html=True)
 
     # --------------------------------------------------------------------------
     # 🌟 自动将 HTML 报告上传到 GitHub 的 report/ 文件夹下
     # --------------------------------------------------------------------------
-    # 使用 test_date 结合用户名生成唯一且不依赖当前时间戳的锁，防止重复上传
+    # 使用 test_date 结合用户名生成唯一防刷锁
     github_lock_key = f"uploaded_{user_name}_{test_date_str}"
     
     if github_lock_key not in st.session_state:
         # 挂上占位锁
         st.session_state[github_lock_key] = "pending" 
         
-        # 文件名直接复用已有的日期数据
+        # 文件直接存入 report/ 文件夹下
         custom_file_name = f"report/{user_name}_瑞文测验报告_{test_date_str}.html"
         
         # 唤醒上传
@@ -373,7 +363,7 @@ elif st.session_state.page == "finish":
             del st.session_state[github_lock_key]  # 失败解开锁以供重试
             st.error(f"❌ 报告云端同步失败，原因: {msg}")
 
-    # 4. 保留原有的本地 HTML 文件下载按钮
+    # 4. 原有的本地 HTML 下载按钮保持不变
     st.write(" ")
     st.download_button(
         label="📥 导出本地网页版 HTML 报告",
