@@ -396,13 +396,7 @@ elif st.session_state.page == "test":
         key=f"question_{idx}"
     )
     
-    # 自动切换下一题
-    answer = st.radio(
-        "请选择答案",
-        choices,
-        horizontal=True,
-        key=f"question_{idx}"
-    )
+    
 
     if answer != "未作答":
 
