@@ -8,6 +8,18 @@ from github import Github
 from io import StringIO
 from streamlit_autorefresh import st_autorefresh
 
+# 🌟 从你自己写的 report.py 文件中，导入这两个核心函数
+from report import calculate_report_data, generate_report_html
+# 加载你的资产文件
+@st.cache_data
+def load_report_assets():
+    norm_df = pd.read_csv("Norm.xlsx - Sheet1.csv", encoding="utf-8")
+    text_df = pd.read_csv("text.xls - Sheet1.csv", encoding="utf-8")
+    return norm_df, text_df
+
+norm_df, text_df = load_report_assets()
+
+
 # ==============================================================================
 # 🌟 极致空间优化：消除顶部留白 + 选项按钮样式
 # ==============================================================================
@@ -284,24 +296,52 @@ elif st.session_state.page == "test":
                 st.session_state.page = "finish"
                 st.rerun()
 # ==========================
-# 页面4：完成
+# ==========================
+# 页面4：完成与报告生成页
 # ==========================
 elif st.session_state.page == "finish":
-    st.success("🎉 测试已完成！")
+    st.success("🎉 测试已完成！个性化报告已实时生成。")
     
     if "balloon_shown" not in st.session_state:
         st.balloons()
         st.session_state.balloon_shown = True
 
-    duration = int(time.time() - st.session_state.start_time)
-    st.write(f"⏱️ 总共完成时间：{duration // 60} 分 {duration % 60} 秒")
+    # 1. 动态统计出五大因子的得分情况
+    factor_scores = {}
+    for _, row in questions.iterrows():
+        factor = str(row["Factor"])
+        item = str(row["Item"])
+        correct_answer = str(row["Answer"])
+        user_answer = str(st.session_state.answers.get(item, ""))
+        is_correct = 1 if user_answer == correct_answer else 0
+        factor_scores[factor] = factor_scores.get(factor, 0) + is_correct
 
-    if "result_df" in st.session_state:
-        csv_data = st.session_state.result_df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
-        st.download_button(
-            label="📥 下载测试结果 (CSV)",
-            data=csv_data,
-            file_name=f"{st.session_state['name']}_{datetime.now():%Y%m%d_%H%M%S}.csv",
-            mime="text/csv",
-            type="primary"
-        )
+    total_score = sum(factor_scores.values())
+
+    # 2. 🌟 核心调用：使用跨文件导入的计算函数清洗数据
+    report_data = calculate_report_data(
+        name=st.session_state.get("name", "测试者"),
+        gender=st.session_state.get("gender", "男"),
+        age=st.session_state.get("age", 10.0),
+        test_date=st.session_state.get("test_date", datetime.now().strftime("%Y-%m-%d")),
+        total_score=total_score,
+        factor_scores=factor_scores,
+        norm_df=norm_df,
+        text_df=text_df
+    )
+
+    # 3. 🌟 核心调用：使用跨文件导入的 HTML 函数生成漂亮的前端排版
+    report_html = generate_report_html(report_data)
+    
+    # 渲染到主界面
+    st.markdown(report_html, unsafe_allow_html=True)
+
+    # 4. 导出和下载功能
+    st.write(" ")
+    st.download_button(
+        label="📥 导出并下载测试报告",
+        data=report_html,
+        file_name=f"{st.session_state.get('name')}_瑞文测验分析报告_{datetime.now():%Y%m%d}.html",
+        mime="text/html",
+        type="primary"
+    )
