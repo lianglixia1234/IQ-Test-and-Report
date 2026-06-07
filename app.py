@@ -100,8 +100,15 @@ def preload_images():
     images = {}
     for _, row in questions.iterrows():
         p = Path("IQ_Test_Picture") / str(row["Image"])
-        images[str(row["Image"])] = Image.open(p)
+        try:
+            img = Image.open(p)
+            # 🌟 关键核心新增：强迫 Pillow 立刻全量读取像素到内存中，关闭惰性加载
+            img.load() 
+            images[str(row["Image"])] = img
+        except Exception as e:
+            st.error(f"图片 {row['Image']} 预加载失败: {e}")
     return images
+
 
 images = preload_images() # 放到全局或按需调用
 
