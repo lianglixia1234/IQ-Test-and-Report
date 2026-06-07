@@ -185,97 +185,96 @@ elif st.session_state.page == "intro":
         st.session_state.page = "test"
         st.rerun()
 
+
 # ==========================
-# 页面3：测试页
+# 页面3：测试页（紧凑同行版）
 # ==========================
 elif st.session_state.page == "test":
-    # 每秒自动刷新
-    st_autorefresh(interval=1000, key="timer_refresh")
+    # 每 2 秒刷新一次，兼顾流畅度与性能
+    st_autorefresh(interval=2000, key="timer_refresh")
     
     TOTAL_TIME = 40 * 60
     remaining = max(0, TOTAL_TIME - (time.time() - st.session_state.start_time))
     
-    # 🌟【修复点 1】超时立即处理并跳转
     if remaining <= 0:
         if not st.session_state.submitted:
             submit_test()
         st.session_state.page = "finish"
         st.rerun()
     
-    # 🌟【修复点 2】先初始化布局列，再渲染内容
-    col1, col2 = st.columns([3, 1])
-    
     idx = st.session_state.current_question
     q = questions.iloc[idx]
     item = str(q["Item"])
     
-    with col1:
-        st.markdown(f"### 第 {idx+1} 题 / {len(questions)} 题")
-    
-    with col2:
-        # 显示倒计时
+    # --------------------------------------------------------------------------
+    # 🌟 顶端紧凑布局：题号与倒计时并排
+    # --------------------------------------------------------------------------
+    top_col1, top_col2 = st.columns([2, 1])
+    with top_col1:
+        st.markdown(f"### 📝 第 {idx+1} / {len(questions)} 题")
+    with top_col2:
         st.markdown(
-            f"<div style='text-align:right; font-size:28px; color:red; font-weight:bold;'>"
+            f"<div style='text-align:right; font-size:26px; color:red; font-weight:bold; margin-top:-5px;'>"
             f"⏳ {int(remaining//60):02d}:{int(remaining%60):02d}"
             f"</div>",
             unsafe_allow_html=True
         )
     
-    # 显示题目图片
-    st.image(images[str(q["Image"])], width=800)
+    # 显示图片
+    img_key = str(q["Image"])
+    if img_key in images:
+        st.image(images[img_key], width=800)
+    else:
+        st.error(f"❌ 未找到图片: {img_key}")
 
     # 选项处理
     option_num = int(q["Options"])
     choices = ["未作答"] + [str(i) for i in range(1, option_num + 1)]
     
     widget_key = f"question_{idx}"
-    
-    # 恢复历史答案
     if widget_key not in st.session_state:
         st.session_state[widget_key] = st.session_state.answers.get(item, "未作答")
     
-    # 🌟【优化点】添加回调函数，确保单选框变动时百分百即时存入 answers
     def on_answer_change():
         st.session_state.answers[item] = st.session_state[widget_key]
 
     answer = st.radio(
-        "请选择答案",
+        "请选择答案：",
         choices,
         key=widget_key,
         horizontal=True,
         on_change=on_answer_change
     )
-    
-    # 双重保险：更新当前答案
     st.session_state.answers[item] = answer
 
-    # ------------------
-    # 导航按钮
-    # ------------------
-    st.write("---") # 添加一条分割线美化界面
+    # --------------------------------------------------------------------------
+    # 🌟 核心修改：上一题和下一题严格限制在【同一行】，绝不换行
+    # --------------------------------------------------------------------------
+    st.write("---")
     
-    if idx == 0:
-        if st.button("下一题", use_container_width=True):
-            st.session_state.current_question += 1
-            st.rerun()
-    elif idx < len(questions) - 1:
-        btn_col1, btn_col2 = st.columns(2)
-        with btn_col1:
-            if st.button("上一题", use_container_width=True):
-                st.session_state.current_question -= 1
+    # 用 columns 把一行均分成两半
+    btn_col1, btn_col2 = st.columns(2)
+    
+    # 统一翻页逻辑
+    def move_page(delta):
+        st.session_state.current_question += delta
+
+    with btn_col1:
+        # 如果是第一题，让“上一题”变成不可点击的灰色状态，但依然占位保持对齐
+        if idx > 0:
+            if st.button("⬅️ 上一题", use_container_width=True, key=f"prev_{idx}"):
+                move_page(-1)
                 st.rerun()
-        with btn_col2:
-            if st.button("下一题", use_container_width=True):
-                st.session_state.current_question += 1
+        else:
+            st.button("⬅️ 上一题", use_container_width=True, disabled=True, key="prev_disabled")
+            
+    with btn_col2:
+        if idx < len(questions) - 1:
+            if st.button("下一题 ➡️", use_container_width=True, key=f"next_{idx}"):
+                move_page(1)
                 st.rerun()
-    else:
-        btn_col1, btn_col2 = st.columns(2)
-        with btn_col1:
-            if st.button("上一题", use_container_width=True):
-                st.session_state.current_question -= 1
-                st.rerun()
-        with btn_col2:
-            if st.button("🏁 确认完成作答", type="primary", use_container_width=True):
+        else:
+            if st.button("✅ 确认完成作答", type="primary", use_container_width=True, key="submit_btn"):
                 submit_test()
                 st.session_state.page = "finish"
                 st.rerun()
