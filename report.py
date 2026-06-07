@@ -1,4 +1,6 @@
 import numpy as np
+from github import Github
+import streamlit as st
 
 def generate_report_html(data):
     """
@@ -190,4 +192,49 @@ def calculate_report_data(name, gender, age, test_date, total_score, factor_scor
     
     return report_data
 
+
+
+def upload_report_to_github(file_name, html_content):
+    """
+    通过 GitHub API 将生成的报告内容无缝提交到指定的 GitHub 仓库的 report/ 文件夹下
+    """
+    try:
+        # 1. 推荐从 st.secrets 中读取敏感配置（安全、防泄漏）
+        # 也可以在本地测试时临时写成字符串，如: TOKEN = "ghp_xxxx"
+        TOKEN = st.secrets["github"]["token"]
+        REPO_NAME = st.secrets["github"]["repo"]  # 例如: "你的用户名/你的仓库名"
+        BRANCH = st.secrets["github"].get("branch", "main") # 默认主分支为 main
+        
+        # 2. 初始化 GitHub 客户端
+        g = Github(TOKEN)
+        repo = g.get_repo(REPO_NAME)
+        
+        # 3. 拼接目标路径（强制存放在 report 文件夹内）
+        github_path = f"report/{file_name}"
+        commit_message = f"自动同步: 提交用户测试报告 {file_name}"
+        
+        # 4. 检查文件在 GitHub 上是否已存在（为了获取 sha 值进行更新，若无则新建）
+        try:
+            contents = repo.get_contents(github_path, ref=BRANCH)
+            # 文件已存在，执行更新
+            repo.update_file(
+                path=github_path,
+                message=commit_message,
+                content=html_content,
+                sha=contents.sha,
+                branch=BRANCH
+            )
+            return True, "更新成功"
+        except Exception:
+            # 文件不存在，执行创建
+            repo.create_file(
+                path=github_path,
+                message=commit_message,
+                content=html_content,
+                branch=BRANCH
+            )
+            return True, "新建成功"
+            
+    except Exception as e:
+        return False, str(e)
 
