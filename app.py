@@ -6,7 +6,7 @@ from PIL import Image
 
 
 # 预加载图片
-@st.cache_data
+@st.cache_resource
 def load_image(path):
     return Image.open(path)
 
@@ -42,15 +42,20 @@ unsafe_allow_html=True)
 # 读取题库
 # ==========================
 
-questions = pd.read_csv(
-    "questions.csv",
-    encoding="gb18030"
-)
+@st.cache_data
+def load_questions():
 
-# 按题号排序
-questions = questions.sort_values(
-    "Question_ID"
-).reset_index(drop=True)
+    df = pd.read_csv(
+        "questions.csv",
+        encoding="gb18030"
+    )
+
+    return (
+        df.sort_values("Question_ID")
+          .reset_index(drop=True)
+    )
+
+questions = load_questions()reset_index(drop=True)
 
 # ==========================
 # Session State 初始化
@@ -280,8 +285,6 @@ elif st.session_state.page == "test":
 
     if remaining <= 0:
 
-        save_current_answer()
-
         submit_test()
 
         st.session_state.page = "finish"
@@ -317,8 +320,7 @@ elif st.session_state.page == "test":
             )
         
             if remaining <= 0:
-        
-                save_current_answer()
+
         
                 submit_test()
         
@@ -352,25 +354,25 @@ elif st.session_state.page == "test":
 
     # 选项
     option_num = int(q["Options"])
- 
-
-    item = str(q["Item"])
-
+    
     choices = ["未作答"] + [
         str(i)
         for i in range(1, option_num + 1)
     ]
     
+    item = str(q["Item"])
+    
     widget_key = f"question_{idx}"
     
-    # 如果这题之前答过
-    saved_answer = st.session_state.answers.get(
-        item,
-        "未作答"
-    )
+    # 第一次进入该题时恢复历史答案
+    if widget_key not in st.session_state:
     
-    # 每次进入题目都同步显示已保存答案
-    st.session_state[widget_key] = saved_answer
+        st.session_state[widget_key] = (
+            st.session_state.answers.get(
+                item,
+                "未作答"
+            )
+        )
     
     answer = st.radio(
         "请选择答案",
@@ -379,7 +381,7 @@ elif st.session_state.page == "test":
         horizontal=True
     )
     
-    # 实时保存当前选择
+    # 保存当前答案
     st.session_state.answers[item] = answer
 
 
@@ -395,8 +397,6 @@ elif st.session_state.page == "test":
 
         if st.button("下一题"):
 
-            save_current_answer()
-
             st.session_state.current_question += 1
 
             st.rerun()
@@ -409,8 +409,6 @@ elif st.session_state.page == "test":
 
             if st.button("上一题"):
 
-                save_current_answer()
-
                 st.session_state.current_question -= 1
 
                 st.rerun()
@@ -418,8 +416,6 @@ elif st.session_state.page == "test":
         with col2:
 
             if st.button("下一题"):
-
-                save_current_answer()
 
                 st.session_state.current_question += 1
 
@@ -433,7 +429,6 @@ elif st.session_state.page == "test":
 
             if st.button("上一题"):
 
-                save_current_answer()
 
                 st.session_state.current_question -= 1
 
@@ -443,7 +438,6 @@ elif st.session_state.page == "test":
 
             if st.button("确认完成作答"):
 
-                save_current_answer()
 
                 submit_test()
 
