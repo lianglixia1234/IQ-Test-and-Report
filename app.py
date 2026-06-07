@@ -187,7 +187,7 @@ elif st.session_state.page == "intro":
 
 
 # ==========================
-# 页面3：测试页
+# 页面3：测试页（全新左右非对称布局）
 # ==========================
 elif st.session_state.page == "test":
     # 每 1 秒刷新一次，兼顾流畅度与性能
@@ -207,36 +207,34 @@ elif st.session_state.page == "test":
     item = str(q["Item"])
     
     # --------------------------------------------------------------------------
-    # 🌟 核心布局：左边放图片(col_left)，右边放控制台(col_right)
+    # 🌟 整体分为左右两列：左边 8.5成宽度放题目核心，右边 1.5成宽度放翻页按钮
     # --------------------------------------------------------------------------
-    col_left, col_right = st.columns([7, 3])
+    main_col, side_col = st.columns([8.5, 1.5])
     
-    # --- 左侧：题目图片 ---
-    with col_left:
-        img_key = str(q["Image"])
-        if img_key in images:
-            # use_container_width=True 让图片自适应左侧容器宽度，防止撑大页面
-            st.image(images[img_key], use_container_width=True)
-        else:
-            st.error(f"❌ 未找到图片: {img_key}")
-            
-    # --- 右侧：所有操作组件（题号、倒计时、选项、按钮） ---
-    with col_right:
-        # 1. 题号与倒计时（并排紧凑显示）
-        meta_col1, meta_col2 = st.columns([1, 1])
-        with meta_col1:
-            st.markdown(f"##### 📝 {idx+1} / {len(questions)}")
-        with meta_col2:
+    # ==========================
+    # 【左侧大区域】：信息 + 图片 + 选项
+    # ==========================
+    with main_col:
+        # 1. 上方：题目数 + 时间并排
+        top_col1, top_col2 = st.columns([2, 1])
+        with top_col1:
+            st.markdown(f"### 📝 第 {idx+1} / {len(questions)} 题")
+        with top_col2:
             st.markdown(
-                f"<div style='text-align:right; font-size:22px; color:red; font-weight:bold; margin-top:-2px;'>"
+                f"<div style='text-align:right; font-size:24px; color:red; font-weight:bold; margin-top:-2px;'> "
                 f"⏳ {int(remaining//60):02d}:{int(remaining%60):02d}"
                 f"</div>",
                 unsafe_allow_html=True
             )
-            
-        st.write("---")
         
-        # 2. 选择答案区域
+        # 2. 中间：题目图片
+        img_key = str(q["Image"])
+        if img_key in images:
+            st.image(images[img_key], use_container_width=True)
+        else:
+            st.error(f"❌ 未找到图片: {img_key}")
+            
+        # 3. 底部：选项（紧跟在图片下方）
         option_num = int(q["Options"])
         choices = ["未作答"] + [str(i) for i in range(1, option_num + 1)]
         
@@ -247,7 +245,6 @@ elif st.session_state.page == "test":
         def on_answer_change():
             st.session_state.answers[item] = st.session_state[widget_key]
 
-        # 减小了一点字体和间距，确保右侧不拥挤
         answer = st.radio(
             "请选择答案：",
             choices,
@@ -256,34 +253,38 @@ elif st.session_state.page == "test":
             on_change=on_answer_change
         )
         st.session_state.answers[item] = answer
-        
-        st.write("---")
-        
-        # 3. 导航按钮（严格并在同一行，紧跟在单选框下方）
-        btn_col1, btn_col2 = st.columns(2)
+
+    # ==========================
+    # 【右侧小区域】：两行垂直对齐的按钮
+    # ==========================
+    with side_col:
+        # 为了让右侧按钮在视觉上有一些向下的偏移，对齐左侧的图片，可以加一点虚空留白
+        st.markdown("<div style='margin-top: 40px;'></div>", unsafe_allow_html=True)
         
         def move_page(delta):
             st.session_state.current_question += delta
 
-        with btn_col1:
-            if idx > 0:
-                if st.button("◀️上一题", use_container_width=True, key=f"prev_{idx}"):
-                    move_page(-1)
-                    st.rerun()
-            else:
-                st.button("◀️上一题", use_container_width=True, disabled=True, key="prev_disabled")
-                
-        with btn_col2:
-            if idx < len(questions) - 1:
-                if st.button("▶️下一题", use_container_width=True, key=f"next_{idx}"):
-                    move_page(1)
-                    st.rerun()
-            else:
-                if st.button("✅ 确认完成作答", type="primary", use_container_width=True, key="submit_btn"):
-                    submit_test()
-                    st.session_state.page = "finish"
-                    st.rerun()
-
+        # 第一行：上一题按钮
+        if idx > 0:
+            if st.button("🪟\n\n◀️上一题", use_container_width=True, key=f"prev_{idx}"):
+                move_page(-1)
+                st.rerun()
+        else:
+            st.button("🪟\n\n◀️上一题", use_container_width=True, disabled=True, key="prev_disabled")
+        
+        # 增加两个按钮之间的垂直间距
+        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+        
+        # 第二行：下一题/确认完成按钮
+        if idx < len(questions) - 1:
+            if st.button("🪟\n\n▶️下一题", use_container_width=True, key=f"next_{idx}"):
+                move_page(1)
+                st.rerun()
+        else:
+            if st.button("✅ 确认完成作答", type="primary", use_container_width=True, key="submit_btn"):
+                submit_test()
+                st.session_state.page = "finish"
+                st.rerun()
 # ==========================
 # 页面4：完成
 # ==========================
