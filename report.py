@@ -93,13 +93,21 @@ TEXT_DATABASE = {
 }
 
 def generate_report_html(data):
-    """根据测试模板定制的精美 HTML 渲染"""
+    """根据测试模板定制的精美 HTML 渲染（已完美补全评估提醒与筛查说明）"""
+    factor_rows = "".join([
+        f"<tr><td style='border:1px solid #dcdfe6;padding:10px;text-align:left;padding-left:20px;'>{k}</td>"
+        f"<td style='border:1px solid #dcdfe6;padding:10px;font-weight:bold;'>{v}</td>"
+        f"<td style='border:1px solid #dcdfe6;padding:10px;color:#909399;'>12</td></tr>" 
+        for k, v in data['factor_scores'].items()
+    ])
+
     return f"""
     <div style="font-family: 'Microsoft YaHei', sans-serif; max-width: 850px; margin: 0 auto; padding: 30px; border: 1px solid #dcdfe6; border-radius: 8px; background-color: #ffffff; color: #303133;">
         <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="color: #1a73e8; margin: 0; font-size: 28px;">测 试 报 告</h1>
             <p style="color: #606266; margin: 10px 0 0 0; font-size: 16px; font-weight: bold;">瑞文智力测验（60题），标准渐进矩阵（SPM）</p>
         </div>
+        
         <div style="margin-bottom: 25px;">
             <h3 style="color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; margin-bottom: 10px;">一、 基本信息</h3>
             <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 15px;">
@@ -110,13 +118,14 @@ def generate_report_html(data):
                     <td style="border: 1px solid #dcdfe6; padding: 10px; width: 35%;">{data['gender']}</td>
                 </tr>
                 <tr>
-                    <td style="border: 1px solid #dcdfe6; padding: 10px; background-color: #f5f7fa; font-weight: bold;">Age</td>
+                    <td style="border: 1px solid #dcdfe6; padding: 10px; background-color: #f5f7fa; font-weight: bold;">年龄</td>
                     <td style="border: 1px solid #dcdfe6; padding: 10px;">{data['age']} 岁</td>
                     <td style="border: 1px solid #dcdfe6; padding: 10px; background-color: #f5f7fa; font-weight: bold;">测试日期</td>
                     <td style="border: 1px solid #dcdfe6; padding: 10px;">{data['date']}</td>
                 </tr>
             </table>
         </div>
+        
         <div style="margin-bottom: 25px;">
             <h3 style="color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; margin-bottom: 10px;">二、 原始分数</h3>
             <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 15px;">
@@ -128,7 +137,7 @@ def generate_report_html(data):
                     </tr>
                 </thead>
                 <tbody>
-                    {"".join([f"<tr><td style='border:1px solid #dcdfe6;padding:10px;text-align:left;padding-left:20px;'>{k}</td><td style='border:1px solid #dcdfe6;padding:10px;font-weight:bold;'>{v}</td><td style='border:1px solid #dcdfe6;padding:10px;color:#909399;'>12</td></tr>" for k,v in data['factor_scores'].items()])}
+                    {factor_rows}
                     <tr style="background-color: #fdf6ec; font-weight: bold; color: #e6a23c;">
                         <td style="border: 1px solid #dcdfe6; padding: 10px; text-align: left; padding-left: 20px;">总分</td>
                         <td style="border: 1px solid #dcdfe6; padding: 10px; font-size: 18px;">{data['total_score']}</td>
@@ -137,14 +146,16 @@ def generate_report_html(data):
                 </tbody>
             </table>
         </div>
+        
         <div style="margin-bottom: 25px;">
             <h3 style="color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; margin-bottom: 10px;">三、 智力水平</h3>
             <div style="background-color: #f4f4f5; padding: 15px; border-radius: 6px; font-size: 15px; line-height: 2;">
-                <div><strong>评估标准分数（百分位）：</strong> <span style="color: #e6a23c; font-weight: bold; font-size: 16px;">{data['percentile']}</span></div>
+                <div><strong>评估标准分数：</strong> <span style="color: #e6a23c; font-weight: bold; font-size: 16px;">{data['percentile']}</span></div>
                 <div><strong>智力水平：</strong> <span style="color: #67c23a; font-weight: bold; font-size: 16px;">{data['level']}</span></div>
-                <div><strong>智商值（测验等级）：</strong> <span style="color: #409eff; font-weight: bold;">{data['rank']} 级</span></div>
+                <div><strong>智商值：</strong> <span style="color: #409eff; font-weight: bold;">{data['rank']} 级</span></div>
             </div>
         </div>
+        
         <div style="margin-bottom: 25px;">
             <h3 style="color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; margin-bottom: 10px;">四、 结果解读与发展建议</h3>
             <div style="font-size: 15px; line-height: 1.6; text-align: justify;">
@@ -153,6 +164,29 @@ def generate_report_html(data):
                 <p><strong>指导建议：</strong></p>
                 <div style="background-color: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 4px; color: #5e6d82; white-space: pre-wrap;">{data['suggestions']}</div>
             </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <h3 style="color: #e6a23c; border-left: 4px solid #e6a23c; padding-left: 10px; margin-bottom: 10px;">五、 评估提醒</h3>
+            <div style="background-color: #fff7eb; border: 1px solid #fddcaf; padding: 15px; border-radius: 6px; font-size: 14px; color: #e6a23c; line-height: 1.6; text-align: justify;">
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #c4820e;">注意事项：</p>
+                <ul style="margin: 0 0 15px 0; padding-left: 20px; color: #af730c;">
+                    <li style="margin-bottom: 6px;">瑞文标准渐进矩阵测试仅测量流体智力（逻辑推理、抽象思维），并不涵盖语言表达、记忆力、情商、实践能力、创造力等多种智力维度。请勿仅凭测试结果判断整体智力水平。</li>
+                    <li style="margin-bottom: 6px;">测试结果受测试环境、个人状态、专注程度、答题态度等因素影响，单次测试结果仅供参考。</li>
+                    <li>未成年受试者的智力仍处于发展阶段，可通过有针对性的思维训练得到显著提升。</li>
+                </ul>
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #c4820e;">核心原则：</p>
+                <ul style="margin: 0; padding-left: 20px; color: #af730c; list-style-type: circle;">
+                    <li style="margin-bottom: 4px;">所有评估结果都应综合考虑多种因素进行全面理解。</li>
+                    <li style="margin-bottom: 4px;">认知能力可以通过科学训练不断发展。</li>
+                    <li style="margin-bottom: 4px;">每个人都拥有独特的才能组合。</li>
+                    <li>建议在专业人士的指导下指定个性化的发展计划。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="text-align: center; color: #909399; font-size: 13px; margin-top: 30px; border-top: 1px dashed #dcdfe6; padding-top: 15px;">
+            * 由于该量表仅为辅助筛查工具，测试结果仅供参考。
         </div>
     </div>
     """
