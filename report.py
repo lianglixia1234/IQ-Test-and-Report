@@ -154,6 +154,33 @@ def generate_report_html(data):
                 <div style="background-color: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 4px; color: #5e6d82; white-space: pre-wrap;">{data['suggestions']}</div>
             </div>
         </div>
+        <div style="margin-top:25px;">
+        <h3 style="color:#1a73e8;border-left:4px solid #1a73e8;padding-left:10px;margin-bottom:10px;">
+            五、评估提醒
+        </h3>
+    
+    ```
+    <div style="background:#fafafa;border:1px solid #e4e7ed;border-radius:6px;padding:15px;font-size:14px;line-height:1.8;color:#606266;">
+        <p>瑞文标准渐进矩阵测试主要测量流体智力（如逻辑推理、抽象思维、图形分析能力），并不涵盖语言表达、记忆力、情绪管理、实践能力、创造力等多种认知与人格维度。因此，请勿仅依据本测试结果对个体整体智力水平或未来发展潜力作出单一判断。</p>
+    
+        <p>测试结果可能受到测试环境、身体状态、情绪状况、专注程度及答题态度等因素影响，单次测评结果仅供参考。</p>
+    
+        <p>未成年受测者的认知能力仍处于持续发展阶段，通过科学训练、良好教育环境及持续学习，相关能力可获得进一步提升。</p>
+    
+        <ul>
+            <li>所有评估结果均应结合成长经历、教育背景及现实表现进行综合理解。</li>
+            <li>认知能力具有可发展性，可通过科学训练持续提升。</li>
+            <li>每个人都拥有独特的能力结构与优势领域。</li>
+            <li>如需获得更全面的能力评估，建议结合专业心理测评及专家访谈结果综合分析。</li>
+        </ul>
+    </div>
+    
+    <div style="margin-top:15px;padding:12px;background:#fff7e6;border:1px solid #ffd591;border-radius:6px;color:#8c6d1f;font-size:13px;">
+        <strong>免责声明：</strong>
+        本测评工具仅作为认知能力辅助筛查与教育参考之用，不构成医学诊断、心理诊断、升学依据或人才选拔标准。测试结果仅供参考，使用者应结合实际情况审慎理解和应用相关结论。
+    </div>
+    ```
+    
     </div>
     """
 
