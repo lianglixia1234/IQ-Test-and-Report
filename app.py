@@ -8,6 +8,7 @@ from github import Github
 from io import StringIO
 from streamlit_autorefresh import st_autorefresh
 from report import upload_report_to_github
+import math
 
 # 🌟 从你自己写的 report.py 文件中，导入这两个核心函数
 from report import calculate_report_data, generate_report_html
@@ -208,8 +209,9 @@ elif st.session_state.page == "test":
     TOTAL_TIME = 40 * 60
     remaining = max(0, TOTAL_TIME - (time.time() - st.session_state.start_time))
     
-    # 计算剩余的整数分钟
-    remaining_minutes = int(remaining // 60)
+    
+    # 更改后：引入数学向上取整，确保一点进去显示 40 分钟，最后 1 分钟显示 1 分钟
+    remaining_minutes = math.ceil(remaining / 60)
     
     # 🌟 核心定义：定义按钮的回调函数（Callback）
     # 确保点击按钮时瞬间响应，绝不吞键
