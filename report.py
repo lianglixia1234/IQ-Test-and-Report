@@ -178,32 +178,10 @@ def generate_report_html(data):
                 五、评估提醒
             </h3>
         
-            <div style="
-                background-color:#fafafa;
-                padding:15px;
-                border:1px solid #eee;
-                border-radius:4px;
-                color:#5e6d82;
-                white-space:pre-wrap;
-                line-height:1.8;
-            ">
                 {ASSESSMENT_NOTICE}
             </div>
         
-            <div style="
-                margin-top:15px;
-                padding:12px;
-                background:#fff7e6;
-                border:1px solid #ffd591;
-                border-radius:4px;
-                color:#8c6d1f;
-                font-size:13px;
-                line-height:1.8;
-            ">
-                <strong>免责声明：</strong><br>
                 {DISCLAIMER}
-            </div>
-        </div>
     """
 
 def calculate_report_data(name, gender, age, test_date, total_score, factor_scores):
