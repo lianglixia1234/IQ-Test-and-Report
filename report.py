@@ -93,13 +93,26 @@ TEXT_DATABASE = {
 }
 
 def generate_report_html(data):
-    """根据测试模板定制的精美 HTML 渲染"""
+    """根据测试模板定制的精美 HTML 渲染（已完美修复 f-string 大括号转义问题）"""
+    
+    # 动态生成因子分数的行（提前处理，避免在 f-string 内部进行复杂的列表推导式）
+    factor_rows = "".join([
+        f"<tr>"
+        f"<td style='border:1px solid #dcdfe6;padding:10px;text-align:left;padding-left:20px;'>{k}</td>"
+        f"<td style='border:1px solid #dcdfe6;padding:10px;font-weight:bold;'>{v}</td>"
+        f"<td style='border:1px solid #dcdfe6;padding:10px;color:#909399;'>12</td>"
+        f"</tr>" 
+        for k, v in data['factor_scores'].items()
+    ])
+
     return f"""
     <div style="font-family: 'Microsoft YaHei', sans-serif; max-width: 850px; margin: 0 auto; padding: 30px; border: 1px solid #dcdfe6; border-radius: 8px; background-color: #ffffff; color: #303133;">
+        
         <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="color: #1a73e8; margin: 0; font-size: 28px;">测 试 报 告</h1>
             <p style="color: #606266; margin: 10px 0 0 0; font-size: 16px; font-weight: bold;">瑞文智力测验（60题），标准渐进矩阵（SPM）</p>
         </div>
+        
         <div style="margin-bottom: 25px;">
             <h3 style="color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; margin-bottom: 10px;">一、 基本信息</h3>
             <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 15px;">
@@ -117,6 +130,7 @@ def generate_report_html(data):
                 </tr>
             </table>
         </div>
+        
         <div style="margin-bottom: 25px;">
             <h3 style="color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; margin-bottom: 10px;">二、 原始分数</h3>
             <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 15px;">
@@ -128,7 +142,7 @@ def generate_report_html(data):
                     </tr>
                 </thead>
                 <tbody>
-                    {"".join([f"<tr><td style='border:1px solid #dcdfe6;padding:10px;text-align:left;padding-left:20px;'>{k}</td><td style='border:1px solid #dcdfe6;padding:10px;font-weight:bold;'>{v}</td><td style='border:1px solid #dcdfe6;padding:10px;color:#909399;'>12</td></tr>" for k,v in data['factor_scores'].items()])}
+                    {factor_rows}
                     <tr style="background-color: #fdf6ec; font-weight: bold; color: #e6a23c;">
                         <td style="border: 1px solid #dcdfe6; padding: 10px; text-align: left; padding-left: 20px;">总分</td>
                         <td style="border: 1px solid #dcdfe6; padding: 10px; font-size: 18px;">{data['total_score']}</td>
@@ -137,6 +151,7 @@ def generate_report_html(data):
                 </tbody>
             </table>
         </div>
+        
         <div style="margin-bottom: 25px;">
             <h3 style="color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; margin-bottom: 10px;">三、 智力水平</h3>
             <div style="background-color: #f4f4f5; padding: 15px; border-radius: 6px; font-size: 15px; line-height: 2;">
@@ -145,13 +160,14 @@ def generate_report_html(data):
                 <div><strong>智商值（测验等级）：</strong> <span style="color: #409eff; font-weight: bold;">{data['rank']} 级</span></div>
             </div>
         </div>
+        
         <div style="margin-bottom: 25px;">
             <h3 style="color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; margin-bottom: 10px;">四、 结果解读与发展建议</h3>
             <div style="font-size: 15px; line-height: 1.6; text-align: justify;">
                 <p><strong>结果解读：</strong></p>
                 <div style="background-color: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 4px; color: #5e6d82; margin-bottom: 15px;">{data['interpretation']}</div>
                 <p><strong>指导建议：</strong></p>
-                <div style="background-color: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 4px; color: #5e6d82; white-space: pre-wrap;">""" + str(data['suggestions']) + """</div>
+                <div style="background-color: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 4px; color: #5e6d82; white-space: pre-wrap;">{data['suggestions']}</div>
             </div>
         </div>
         
@@ -168,7 +184,7 @@ def generate_report_html(data):
                 <ul style="margin: 0; padding-left: 20px; color: #af730c; list-style-type: circle;">
                     <li style="margin-bottom: 4px;">所有评估结果都应综合考虑多种因素进行全面理解。</li>
                     <li style="margin-bottom: 4px;">认知能力可以通过科学训练不断发展。</li>
-                    <li style="margin-bottom: 4px;">每个人都拥有独特的才能组合。</li>
+                    <li style="margin-bottom: 4px;">每个人都拥有独特的 talents 组合。</li>
                     <li>建议在专业人士的指导下指定个性化的发展计划。</li>
                 </ul>
             </div>
