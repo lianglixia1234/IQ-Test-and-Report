@@ -130,7 +130,7 @@ def generate_report_html(data):
                     <td style="border: 1px solid #dcdfe6; padding: 10px; width: 35%;">{data['gender']}</td>
                 </tr>
                 <tr>
-                    <td style="border: 1px solid #dcdfe6; padding: 10px; background-color: #f5f7fa; font-weight: bold;">Age</td>
+                    <td style="border: 1px solid #dcdfe6; padding: 10px; background-color: #f5f7fa; font-weight: bold;">年龄</td>
                     <td style="border: 1px solid #dcdfe6; padding: 10px;">{data['age']} 岁</td>
                     <td style="border: 1px solid #dcdfe6; padding: 10px; background-color: #f5f7fa; font-weight: bold;">测试日期</td>
                     <td style="border: 1px solid #dcdfe6; padding: 10px;">{data['date']}</td>
