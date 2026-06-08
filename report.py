@@ -154,6 +154,30 @@ def generate_report_html(data):
                 <div style="background-color: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 4px; color: #5e6d82; white-space: pre-wrap;">{data['suggestions']}</div>
             </div>
         </div>
+        
+        <div style="margin-bottom: 25px;">
+            <h3 style="color: #e6a23c; border-left: 4px solid #e6a23c; padding-left: 10px; margin-bottom: 10px;">五、 评估提醒</h3>
+            <div style="background-color: #fff7eb; border: 1px solid #fddcaf; padding: 15px; border-radius: 6px; font-size: 14px; color: #e6a23c; line-height: 1.6; text-align: justify;">
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #c4820e;">注意事项：</p>
+                <ul style="margin: 0 0 15px 0; padding-left: 20px; color: #af730c;">
+                    <li style="margin-bottom: 6px;">瑞文标准渐进矩阵测试仅测量流体智力（逻辑推理、抽象思维），并不涵盖语言表达、记忆力、情商、实践能力、创造力等多种智力维度。请勿仅凭测试结果判断整体智力水平。</li>
+                    <li style="margin-bottom: 6px;">测试结果受测试环境、个人状态、专注程度、答题态度等因素影响，单次测试结果仅供参考。</li>
+                    <li>未成年受试者的智力仍处于发展阶段，可通过有针对性的思维训练得到显著提升。</li>
+                </ul>
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #c4820e;">核心原则：</p>
+                <ul style="margin: 0; padding-left: 20px; color: #af730c; list-style-type: circle;">
+                    <li style="margin-bottom: 4px;">所有评估结果都应综合考虑多种因素进行全面理解。</li>
+                    <li style="margin-bottom: 4px;">认知能力可以通过科学训练不断发展。</li>
+                    <li style="margin-bottom: 4px;">每个人都拥有独特的才能组合。</li>
+                    <li>建议在专业人士的指导下指定个性化的发展计划。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="text-align: center; color: #909399; font-size: 13px; margin-top: 30px; border-top: 1px dashed #dcdfe6; padding-top: 15px;">
+            * 由于该量表仅为辅助筛查工具，测试结果仅供参考。
+        </div>
+
     </div>
     """
 
@@ -185,9 +209,9 @@ def calculate_report_data(name, gender, age, test_date, total_score, factor_scor
     elif matched_p == 10:
         p_text = "5~24"
     elif matched_p == 5:
-        p_text = "5~24"   # 🌟 修复关键：刚好压线 5 百分位的人，应当属于 5~24 档次
+        p_text = "5~24"  
     else:
-        p_text = "<5"     # 🌟 修复关键：matched_p == 0（完全低于常模下限），对应 "<5" 区间
+        p_text = "<5"     
 
     # 从 100% 格式正确的内置数据库中抓取文本
     txt_info = TEXT_DATABASE.get(p_text, TEXT_DATABASE["25~74"])
