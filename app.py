@@ -366,7 +366,6 @@ elif st.session_state.page == "finish":
             success, msg = upload_report_to_github(custom_file_name, report_html)
             
         if success:
-            st.toast(f"✅ 报告已成功加密同步至 GitHub ({custom_file_name})")
             st.session_state[github_lock_key] = "success"
         else:
             del st.session_state[github_lock_key]  # 失败解开锁以供重试
