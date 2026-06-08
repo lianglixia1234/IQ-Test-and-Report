@@ -93,7 +93,7 @@ TEXT_DATABASE = {
 }
 
 def generate_report_html(data):
-    """根据测试模板定制的精美 HTML 渲染（已完美补全评估提醒与筛查说明）"""
+    """根据测试模板定制的精美 HTML 渲染（已完美修复标签未闭合引发的排版嵌套问题）"""
     factor_rows = "".join([
         f"<tr><td style='border:1px solid #dcdfe6;padding:10px;text-align:left;padding-left:20px;'>{k}</td>"
         f"<td style='border:1px solid #dcdfe6;padding:10px;font-weight:bold;'>{v}</td>"
@@ -103,6 +103,7 @@ def generate_report_html(data):
 
     return f"""
     <div style="font-family: 'Microsoft YaHei', sans-serif; max-width: 850px; margin: 0 auto; padding: 30px; border: 1px solid #dcdfe6; border-radius: 8px; background-color: #ffffff; color: #303133;">
+        
         <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="color: #1a73e8; margin: 0; font-size: 28px;">测 试 报 告</h1>
             <p style="color: #606266; margin: 10px 0 0 0; font-size: 16px; font-weight: bold;">瑞文智力测验（60题），标准渐进矩阵（SPM）</p>
@@ -166,7 +167,7 @@ def generate_report_html(data):
             </div>
         </div>
 
-        <div style="margin-bottom: 15px;">
+        <div style="margin-bottom: 25px;">
             <h3 style="color: #e6a23c; border-left: 4px solid #e6a23c; padding-left: 10px; margin-bottom: 10px;">五、 评估提醒</h3>
             <div style="background-color: #fff7eb; border: 1px solid #fddcaf; padding: 15px; border-radius: 6px; font-size: 14px; color: #e6a23c; line-height: 1.6; text-align: justify;">
                 <p style="margin: 0 0 8px 0; font-weight: bold; color: #c4820e;">注意事项：</p>
@@ -188,6 +189,7 @@ def generate_report_html(data):
         <div style="text-align: center; color: #909399; font-size: 13px; margin-top: 30px; border-top: 1px dashed #dcdfe6; padding-top: 15px;">
             * 由于该量表仅为辅助筛查工具，测试结果仅供参考。
         </div>
+        
     </div>
     """
 
