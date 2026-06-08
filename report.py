@@ -151,7 +151,7 @@ def generate_report_html(data):
                 <p><strong>结果解读：</strong></p>
                 <div style="background-color: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 4px; color: #5e6d82; margin-bottom: 15px;">{data['interpretation']}</div>
                 <p><strong>指导建议：</strong></p>
-                <div style="background-color: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 4px; color: #5e6d82; white-space: pre-wrap;">{data['suggestions']}</div>
+                <div style="background-color: #fafafa; padding: 15px; border: 1px solid #eee; border-radius: 4px; color: #5e6d82; white-space: pre-wrap;">""" + str(data['suggestions']) + """</div>
             </div>
         </div>
         
