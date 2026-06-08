@@ -179,7 +179,6 @@ def generate_report_html(data):
             </h3>
         
                 {ASSESSMENT_NOTICE}
-            </div>
         
                 {DISCLAIMER}
     """
